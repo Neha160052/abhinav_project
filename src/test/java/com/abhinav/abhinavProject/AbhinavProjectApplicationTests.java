@@ -1,4 +1,4 @@
-package com.abhinav.abhinavproject;
+package com.abhinav.abhinavProject;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

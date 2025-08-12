@@ -1,4 +1,4 @@
-package com.abhinav.abhinavproject;
+package com.abhinav.abhinavProject;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
