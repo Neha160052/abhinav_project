@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -23,6 +25,8 @@ public class Product {
 
     String name;
 
+    String brand;
+
     String description;
 
     boolean isCancellable;
@@ -35,4 +39,7 @@ public class Product {
 
     @ManyToOne
     Category category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    List<ProductVariation> variations;
 }

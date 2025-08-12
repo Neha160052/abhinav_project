@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -31,5 +31,5 @@ public class CategoryMetadataFieldValues {
     @MapsId("categoryMetadataFieldId")
     CategoryMetadataField categoryMetadataField;
 
-    List<String> values;
+    Set<String> valueList;
 }

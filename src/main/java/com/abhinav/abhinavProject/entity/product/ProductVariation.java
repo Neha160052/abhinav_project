@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.entity.product;
 
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,18 +11,24 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Category {
+public class ProductVariation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
-    String name;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    Product product;
 
-//    @OneToOne(mappedBy = "parentCategory")
+    int quantityAvailable;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_category_id")
-    Category parentCategory;
+    int price;
+
+    @Column(columnDefinition = "json")
+    String metadata;
+
+    String primaryImageName;
+
+    boolean isActive;
 
 }
