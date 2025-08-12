@@ -15,11 +15,11 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductReview {
 
-    public ProductReview(Product product, Customer customer, String review, RatingEnum rating) {
-        this.key = new ProductReviewCompositeKey(product.getId(), customer.getUser().getId());
-        this.review = review;
-        this.rating = rating;
-    }
+//    public ProductReview(Product product, Customer customer, String review, RatingEnum rating) {
+//        this.key = new ProductReviewCompositeKey(product.getId(), customer.getUser().getId());
+//        this.review = review;
+//        this.rating = rating;
+//    }
 
     @EmbeddedId
     ProductReviewCompositeKey key;

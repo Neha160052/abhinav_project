@@ -22,7 +22,7 @@ public class ProductVariation {
 
     int quantityAvailable;
 
-    int price;
+    double price;
 
     @Column(columnDefinition = "json")
     String metadata;
