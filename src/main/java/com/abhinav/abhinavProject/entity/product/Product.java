@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.entity.product;
 
+import com.abhinav.abhinavProject.entity.category.Category;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

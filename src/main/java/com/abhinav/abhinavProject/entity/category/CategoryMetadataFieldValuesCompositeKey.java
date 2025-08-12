@@ -1,4 +1,4 @@
-package com.abhinav.abhinavProject.entity.product;
+package com.abhinav.abhinavProject.entity.category;
 
 
 import jakarta.persistence.Embeddable;
