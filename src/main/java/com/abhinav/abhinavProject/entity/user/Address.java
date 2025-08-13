@@ -28,7 +28,4 @@ public class Address {
 
     String label;
 
-    @ManyToOne
-    User user;
-
 }

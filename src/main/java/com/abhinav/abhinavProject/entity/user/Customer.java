@@ -1,9 +1,6 @@
 package com.abhinav.abhinavProject.entity.user;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +13,9 @@ import lombok.experimental.FieldDefaults;
 public class Customer {
 
     @Id
+    Long id;
+
+    @MapsId
     @OneToOne(cascade = CascadeType.ALL)
     User user;
 

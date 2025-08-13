@@ -18,10 +18,10 @@ public class OrderStatus {
     @OneToOne
     OrderProduct orderProduct;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     OrderStatusEnum fromStatus;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     OrderStatusEnum toStatus;
 
     String transitionNotesComments;
