@@ -1,4 +1,4 @@
-package com.abhinav.abhinavProject.entity.order;
+package com.abhinav.abhinavProject.constant;
 
 import java.util.EnumSet;
 import java.util.Set;
