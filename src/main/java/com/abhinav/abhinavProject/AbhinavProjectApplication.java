@@ -1,16 +1,15 @@
 package com.abhinav.abhinavProject;
 
+import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @SpringBootApplication
@@ -31,8 +30,9 @@ public class AbhinavProjectApplication  implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        Optional<User> roleAdmin = userRepository.findByRole("ROLE_ADMIN");
+    public void run(String... args) {
+        Role adminRole = roleRepository.findByAuthority("ROLE_ADMIN");
+        Optional<User> roleAdmin = userRepository.findByRole(adminRole);
 
         roleAdmin.ifPresentOrElse(
                 user->{},
@@ -42,10 +42,10 @@ public class AbhinavProjectApplication  implements CommandLineRunner {
                     newAdmin.setLastName("Istrator");
                     newAdmin.setPassword("admin@123");
                     newAdmin.setEmail("admin@mail.com");
-                    newAdmin.setRole(roleRepository.findByAuthority("ROLE_ADMIN"));
-                }
+                    newAdmin.setRole(adminRole);
 
+                    userRepository.save(newAdmin);
+                }
         );
-        LocalDateTime
     }
 }

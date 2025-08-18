@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.entity.product;
 
+import com.abhinav.abhinavProject.constant.RatingEnum;
 import com.abhinav.abhinavProject.entity.user.Customer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
