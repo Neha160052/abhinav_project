@@ -1,4 +1,4 @@
-package com.abhinav.abhinavProject.service;
+package com.abhinav.abhinavProject.service.impl;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class EmailService {
+public class EmailServiceImpl {
 
     JavaMailSender javaMailSender;
 
-    public EmailService(JavaMailSender javaMailSender) {
+    public EmailServiceImpl(JavaMailSender javaMailSender) {
         this.javaMailSender = javaMailSender;
     }
 
