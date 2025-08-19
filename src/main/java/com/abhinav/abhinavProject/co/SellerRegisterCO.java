@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.co;
 
+import com.abhinav.abhinavProject.constant.Regex;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +34,7 @@ public class SellerRegisterCO {
 
     @NotBlank(message = "Phone number is required")
     @Pattern(
-            regexp = "^\\d{10}$",
+            regexp = Regex.CONTACT,
             message = "Phone number must be exactly 10 digits"
     )
     String companyContact;
@@ -41,7 +42,7 @@ public class SellerRegisterCO {
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 15, message = "Password must be between 8 and 15 characters")
     @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,15}$",
+            regexp = Regex.PASSWORD,
             message = "Password must contain at least 1 lowercase, 1 uppercase, 1 number, and 1 special character"
     )
     String password;
@@ -50,7 +51,7 @@ public class SellerRegisterCO {
     String confirmPassword;
 
     @NotBlank
-    @Pattern(regexp = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")
+    @Pattern(regexp = Regex.GST)
     String gst;
 
     @NotBlank(message = "Company name is required")
