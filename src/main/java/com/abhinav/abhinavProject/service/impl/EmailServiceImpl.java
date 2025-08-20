@@ -37,7 +37,7 @@ public class EmailServiceImpl {
             SimpleMailMessage mail = new SimpleMailMessage();
             mail.setTo(toMail);
             mail.setSubject("Activate your account");
-            mail.setText("Hi "+firstName+",\nPlease activate your account by clicking the link below:\n\nhttp://localhost:8080/customer/activate?token="+token);
+            mail.setText("Hi "+firstName+",\nPlease activate your account by clicking the link below:\n\nhttp://localhost:8080/api/customer/activate?token="+token);
 
             javaMailSender.send(mail);
 

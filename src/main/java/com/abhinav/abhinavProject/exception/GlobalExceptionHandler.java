@@ -12,4 +12,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> validationExceptionHandler(ValidationException e) {
         return ResponseEntity.badRequest().body("Validation Exception");
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> respond(RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
 }

@@ -7,10 +7,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/customer")
@@ -24,5 +21,11 @@ public class CustomerController {
     public ResponseEntity<String> registerCustomer(@RequestBody @Valid CustomerRegisterCO customerRegisterCO) {
         customerService.registerCustomer(customerRegisterCO);
         return ResponseEntity.ok("User Registered");
+    }
+
+    @GetMapping("/activate")
+    public ResponseEntity<String> activateCustomerAccount(@RequestParam String token) {
+        customerService.activateCustomerAccount(token);
+            return ResponseEntity.ok("Customer account had been activated!");
     }
 }
