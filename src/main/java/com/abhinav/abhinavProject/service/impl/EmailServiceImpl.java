@@ -30,4 +30,20 @@ public class EmailServiceImpl {
             log.error("Error sending mail");
         }
     }
+
+    @Async
+    public void sendActivationEmail(String firstName, String toMail, String token) {
+        try {
+            SimpleMailMessage mail = new SimpleMailMessage();
+            mail.setTo(toMail);
+            mail.setSubject("Activate your account");
+            mail.setText("Hi "+firstName+",\nPlease activate your account by clicking the link below:\n\nhttp://localhost:8080/customer/activate?token="+token);
+
+            javaMailSender.send(mail);
+
+            log.info("Triggered email to email: "+toMail);
+        } catch (Exception e) {
+            log.error("Error sending mail");
+        }
+    }
 }

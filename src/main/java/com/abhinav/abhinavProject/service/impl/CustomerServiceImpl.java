@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
+import com.abhinav.abhinavProject.entity.user.ActivationToken;
 import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.User;
@@ -15,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -24,6 +27,7 @@ public class CustomerServiceImpl implements CustomerService {
     CustomerRepository customerRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    EmailServiceImpl emailServiceImpl;
 
     public Customer registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
@@ -37,16 +41,29 @@ public class CustomerServiceImpl implements CustomerService {
         Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER");
 
         User user = new User();
+        Customer customer = new Customer();
+        ActivationToken activationToken = new ActivationToken();
+
         user.setEmail(registerCO.getEmail());
         user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
         user.setFirstName(registerCO.getFirstName());
+        if (registerCO.getMiddleName() != null)
+            user.setMiddleName(registerCO.getMiddleName());
         user.setLastName(registerCO.getLastName());
         user.setRole(customerRole);
 
-        Customer customer = new Customer();
         customer.setUser(user);
         customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
 
-        return customerRepository.save(customer);
+        activationToken.setToken(UUID.randomUUID().toString());
+        activationToken.setCustomer(customer);
+
+        customer.setActivationToken(activationToken);
+
+        Customer savedCustomer = customerRepository.save(customer);
+
+        emailServiceImpl.sendActivationEmail(customer.getUser().getFirstName(), customer.getUser().getEmail(), customer.getActivationToken().getToken());
+
+        return savedCustomer;
     }
 }
