@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
+import com.abhinav.abhinavProject.co.EmailRequestCO;
 import com.abhinav.abhinavProject.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -26,6 +27,12 @@ public class CustomerController {
     @GetMapping("/activate")
     public ResponseEntity<String> activateCustomerAccount(@RequestParam String token) {
         customerService.activateCustomerAccount(token);
-            return ResponseEntity.ok("Customer account had been activated!");
+        return ResponseEntity.ok("Customer account has been activated!");
+    }
+
+    @GetMapping("/activate/resend")
+    public ResponseEntity<String> resendActivationCode(@RequestBody @Valid EmailRequestCO emailRequestCO) {
+        customerService.resendActivationCode(emailRequestCO.getEmail());
+        return ResponseEntity.ok("New activation link has been sent to the registered email address!");
     }
 }

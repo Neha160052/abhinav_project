@@ -8,4 +8,6 @@ public interface CustomerService {
     Customer registerCustomer(CustomerRegisterCO customerRegisterCO);
 
     void activateCustomerAccount(String token);
+
+    void resendActivationCode(String email);
 }

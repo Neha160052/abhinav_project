@@ -55,18 +55,10 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setUser(user);
         customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
 
-        customer = generateNewActivationToken(customer);
-
-        Customer savedCustomer = customerRepository.save(customer);
-
-        emailServiceImpl.sendActivationEmail(customer.getUser().getFirstName(),
-                customer.getUser().getEmail(),
-                customer.getActivationToken().getToken());
-
-        return savedCustomer;
+        return generateNewActivationTokenAndSendEmail(customer);
     }
 
-    private Customer generateNewActivationToken(Customer customer) {
+    private Customer generateNewActivationTokenAndSendEmail(Customer customer) {
         ActivationToken activationToken = new ActivationToken();
 
         activationToken.setToken(UUID.randomUUID().toString());
@@ -74,7 +66,14 @@ public class CustomerServiceImpl implements CustomerService {
         activationToken.setExpiration(LocalDateTime.now().plusHours(3));
 
         customer.setActivationToken(activationToken);
-        return customer;
+
+        Customer savedCustomer = customerRepository.save(customer);
+
+        emailServiceImpl.sendActivationEmail(savedCustomer.getUser().getFirstName(),
+                savedCustomer.getUser().getEmail(),
+                savedCustomer.getActivationToken().getToken());
+
+        return savedCustomer;
     }
 
     public void activateCustomerAccount(String token) {
@@ -92,12 +91,8 @@ public class CustomerServiceImpl implements CustomerService {
                 .getExpiration()
                 .isBefore(LocalDateTime.now())
         ) {
-            Customer newTokenCustomer = generateNewActivationToken(customer);
-            customerRepository.save(newTokenCustomer);
-            emailServiceImpl.sendActivationEmail(newTokenCustomer.getUser().getFirstName(),
-                    newTokenCustomer.getUser().getEmail(),
-                    newTokenCustomer.getActivationToken().getToken());
-            throw new RuntimeException("Activation code expired. New code has been emailed.");
+            generateNewActivationTokenAndSendEmail(customer);
+            throw new RuntimeException("Activation code expired. New activation link has been emailed.");
         }
 
         User customerUser = customer.getUser();
@@ -106,5 +101,19 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setActivationToken(null);
 
         customerRepository.save(customer);
+    }
+
+    public void resendActivationCode(String email) {
+        Customer existingCustomer = customerRepository.findByUser_Email(email);
+
+        if(existingCustomer == null) {
+            throw new RuntimeException("Customer with email "+email+" does not exist");
+        }
+
+        if (existingCustomer.getUser().isActive()){
+            throw new RuntimeException("Customer account is already activated");
+        }
+
+        generateNewActivationTokenAndSendEmail(existingCustomer);
     }
 }
