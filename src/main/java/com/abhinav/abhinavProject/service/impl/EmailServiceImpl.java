@@ -41,7 +41,23 @@ public class EmailServiceImpl {
 
             javaMailSender.send(mail);
 
-            log.info("Triggered email to email: "+toMail);
+            log.info("Sent email to email: "+toMail);
+        } catch (Exception e) {
+            log.error("Error sending mail");
+        }
+    }
+
+    @Async
+    public void sendPasswordResetEmail(String firstName, String toMail, String token) {
+        try {
+            SimpleMailMessage mail = new SimpleMailMessage();
+            mail.setTo(toMail);
+            mail.setSubject("Password Reset Request");
+            mail.setText("Hi "+firstName+",\nPlease reset your password by clicking the link below:\n\nhttp://localhost:8080/api/auth/forgot-password/reset?token="+token);
+
+            javaMailSender.send(mail);
+
+            log.info("Sent email to email: "+toMail);
         } catch (Exception e) {
             log.error("Error sending mail");
         }

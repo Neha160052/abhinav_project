@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = "token"))
-public class ActivationToken {
+public class PasswordResetToken {
 
     @Id
     long id;
@@ -25,10 +25,9 @@ public class ActivationToken {
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "user_id")
     @JsonBackReference
-    Customer customer;
+    User user;
 
     LocalDateTime expiration;
-
 }
