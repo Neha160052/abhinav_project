@@ -47,6 +47,15 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    public void logoutUser(String token) {
+        String refreshTokenJti = jwtService.extractRefreshTokenJti(token);
+        Date expiry = jwtService.extractExpiration(token);
+
+        BlacklistTokens blacklistToken = new BlacklistTokens(refreshTokenJti, expiry);
+
+        blacklistTokensRepository.save(blacklistToken);
+    }
+
     private void generateNewPasswordResetTokenAndSendEmail(User user) {
         PasswordResetToken passwordResetToken = new PasswordResetToken();
 

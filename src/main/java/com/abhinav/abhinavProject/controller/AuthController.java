@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -72,6 +73,14 @@ public class AuthController {
                                 .build().toString()
                 )
                 .body(new AuthTokenResponseVO(tokens[0], "bearer"));
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout() {
+        String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+
+        userService.logoutUser(accessToken);
+        return ResponseEntity.ok("User logged out successfully");
     }
 
     @PostMapping("/forgot-password")
