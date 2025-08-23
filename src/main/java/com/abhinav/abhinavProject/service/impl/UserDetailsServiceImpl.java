@@ -3,28 +3,26 @@ package com.abhinav.abhinavProject.service.impl;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
-public class UserDetailServiceImpl implements UserDetailsService {
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+public class UserDetailsServiceImpl implements UserDetailsService {
 
-
-    private final UserRepository userRepository;
-
-    public UserDetailServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
-        if(user==null) {
-            throw new UsernameNotFoundException("User Not Found");
-
-        }
+        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User Not Found"));
         return new UserPrinciple(user);
     }
 }

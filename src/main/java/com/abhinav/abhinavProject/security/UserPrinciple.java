@@ -42,7 +42,7 @@ public class UserPrinciple implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return user.getInvalidAttemptCount()==3;
+        return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override

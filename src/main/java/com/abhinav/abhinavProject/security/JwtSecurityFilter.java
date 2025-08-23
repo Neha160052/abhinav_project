@@ -1,6 +1,8 @@
 package com.abhinav.abhinavProject.security;
 
-import com.abhinav.abhinavProject.utils.JwtUtils;
+import com.abhinav.abhinavProject.repository.BlacklistTokensRepository;
+import com.abhinav.abhinavProject.utils.JwtService;
+import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,9 +23,11 @@ import java.io.IOException;
 @Component
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@NonNullApi
 public class JwtSecurityFilter extends OncePerRequestFilter {
 
-    JwtUtils jwtUtils;
+    JwtService jwtService;
+    BlacklistTokensRepository blacklistTokensRepository;
     UserDetailsService userDetailsService;
 
     @Override
@@ -34,13 +38,17 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-            username = jwtUtils.extractUserName(token);
+            username = jwtService.extractUserName(token);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtils.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getAuthorities());
+            String refreshTokenJti = jwtService.extractRefreshTokenJti(token);
+
+            if (jwtService.validateToken(token, userDetails) &&
+                    !blacklistTokensRepository.existsByTokenId(refreshTokenJti)) {
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);

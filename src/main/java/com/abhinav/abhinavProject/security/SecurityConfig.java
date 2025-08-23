@@ -1,11 +1,17 @@
 package com.abhinav.abhinavProject.security;
 
+import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.service.impl.EmailServiceImpl;
+import com.abhinav.abhinavProject.service.impl.UserDetailsServiceImpl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -40,6 +46,25 @@ public class SecurityConfig {
                 .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
+    @Bean
+    public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider(UserDetailsServiceImpl userDetailsServiceImpl,
+                                                         PasswordEncoder passwordEncoder,
+                                                         EmailServiceImpl emailService,
+                                                         UserRepository userRepository) {
+        return new CustomDaoAuthenticationProvider(
+                userDetailsServiceImpl,
+                passwordEncoder,
+                emailService,
+                userRepository
+        );
+    }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

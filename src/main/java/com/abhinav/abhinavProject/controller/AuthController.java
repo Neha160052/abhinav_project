@@ -1,15 +1,27 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.EmailRequestCO;
+import com.abhinav.abhinavProject.co.LoginRequestCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.vo.AuthTokenResponseVO;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Optional;
+
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -18,9 +30,48 @@ public class AuthController {
 
     UserService userService;
 
-    @GetMapping("/login")
-    public ResponseEntity<String> getString() {
-        return ResponseEntity.ok("Hello");
+    @PostMapping("/login")
+    public ResponseEntity<AuthTokenResponseVO> login(@RequestBody @Valid LoginRequestCO loginRequestCO) {
+        String[] tokens = userService.loginUser(loginRequestCO);
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE,
+                        ResponseCookie.from("refreshToken", tokens[1])
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(Duration.ofHours(24)) // TODO put expiration times in a constant
+                                .sameSite("Strict")
+                                .build()
+                                .toString()
+                )
+                .body(new AuthTokenResponseVO(tokens[0], "bearer"));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthTokenResponseVO> refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = Arrays.stream(
+                Optional.ofNullable(request.getCookies())
+                        .orElse(new Cookie[0]))
+                .filter(c-> c.getName().equals("refreshToken"))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Refresh Token missing"));
+
+        String[] tokens = userService.refreshJwtTokens(refreshToken);
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE,
+                        ResponseCookie.from("refreshToken", tokens[1])
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(Duration.ofHours(24))
+                                .sameSite("Strict")
+                                .build().toString()
+                )
+                .body(new AuthTokenResponseVO(tokens[0], "bearer"));
     }
 
     @PostMapping("/forgot-password")

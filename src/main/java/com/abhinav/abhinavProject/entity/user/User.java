@@ -55,7 +55,7 @@ public class User {
     @JoinColumn(name = "role_id")
     Role role;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     Set<Address> address;
 

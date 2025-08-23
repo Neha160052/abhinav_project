@@ -10,7 +10,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> validationExceptionHandler(ValidationException e) {
-        return ResponseEntity.badRequest().body("Validation Exception");
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
