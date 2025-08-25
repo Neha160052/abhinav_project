@@ -8,7 +8,7 @@ import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.BlacklistTokensRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
-import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.service.AuthService;
 import com.abhinav.abhinavProject.utils.JwtService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class UserServiceImpl implements UserService {
+public class AuthServiceImpl implements AuthService {
 
     UserRepository userRepository;
     EmailServiceImpl emailServiceImpl;

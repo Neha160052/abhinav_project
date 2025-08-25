@@ -3,7 +3,7 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.EmailRequestCO;
 import com.abhinav.abhinavProject.co.LoginRequestCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
-import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.service.AuthService;
 import com.abhinav.abhinavProject.vo.AuthTokenResponseVO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,11 +29,11 @@ import java.util.Optional;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AuthController {
 
-    UserService userService;
+    AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponseVO> login(@RequestBody @Valid LoginRequestCO loginRequestCO) {
-        String[] tokens = userService.loginUser(loginRequestCO);
+        String[] tokens = authService.loginUser(loginRequestCO);
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.SET_COOKIE,
@@ -59,7 +59,7 @@ public class AuthController {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Refresh Token missing"));
 
-        String[] tokens = userService.refreshJwtTokens(refreshToken);
+        String[] tokens = authService.refreshJwtTokens(refreshToken);
 
         return ResponseEntity
                 .ok()
@@ -79,20 +79,20 @@ public class AuthController {
     public ResponseEntity<String> logout() {
         String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
 
-        userService.logoutUser(accessToken);
+        authService.logoutUser(accessToken);
         return ResponseEntity.ok("User logged out successfully");
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
-        userService.sendResetPasswordLink(emailRequestCO.getEmail());
+        authService.sendResetPasswordLink(emailRequestCO.getEmail());
         return ResponseEntity.ok("A reset password link has been sent to the email!");
     }
 
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
                                                 @RequestParam String token) {
-        userService.resetUserPassword(resetPasswordCO, token);
+        authService.resetUserPassword(resetPasswordCO, token);
         return ResponseEntity.ok("Password had been updated successfully!");
     }
 
