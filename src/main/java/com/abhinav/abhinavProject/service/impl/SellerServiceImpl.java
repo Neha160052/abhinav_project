@@ -1,6 +1,8 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.co.AddressDTO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
+import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,18 @@ public class SellerServiceImpl implements SellerService {
         user.setFirstName(registerCO.getFirstName());
         user.setLastName(registerCO.getLastName());
         user.setRole(sellerRole);
+
+        AddressDTO companyAddress = registerCO.getCompanyAddress();
+        Address userAddress = Address.builder()
+                .city(companyAddress.getCity())
+                .state(companyAddress.getState())
+                .country(companyAddress.getCountry())
+                .addressLine(companyAddress.getAddressLine())
+                .zipCode(companyAddress.getZipCode())
+                .label(companyAddress.getLabel())
+                .build();
+
+        user.setAddress(Set.of(userAddress));
 
         Seller newSeller = new Seller();
         newSeller.setUser(user);
