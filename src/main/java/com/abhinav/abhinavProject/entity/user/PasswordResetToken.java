@@ -1,6 +1,6 @@
 package com.abhinav.abhinavProject.entity.user;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,7 +26,7 @@ public class PasswordResetToken {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonManagedReference
     User user;
 
     LocalDateTime expiration;

@@ -1,6 +1,6 @@
 package com.abhinav.abhinavProject.entity.user;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,7 +26,7 @@ public class ActivationToken {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "customer_id")
-    @JsonBackReference
+    @JsonManagedReference
     Customer customer;
 
     LocalDateTime expiration;
