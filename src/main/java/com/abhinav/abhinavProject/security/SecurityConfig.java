@@ -41,6 +41,9 @@ public class SecurityConfig {
                                     "/api/auth/forgot-password/reset",
                                     "/api/auth/refresh-token"
                             ).permitAll()
+                            .requestMatchers(
+                                    "/admin/**"
+                            ).hasRole("ADMIN")
                             .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

@@ -9,14 +9,19 @@ import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -106,14 +111,26 @@ public class CustomerServiceImpl implements CustomerService {
     public void resendActivationCode(String email) {
         Customer existingCustomer = customerRepository.findByUser_Email(email);
 
-        if(existingCustomer == null) {
-            throw new RuntimeException("Customer with email "+email+" does not exist");
+        if (existingCustomer == null) {
+            throw new RuntimeException("Customer with email " + email + " does not exist");
         }
 
-        if (existingCustomer.getUser().isActive()){
+        if (existingCustomer.getUser().isActive()) {
             throw new RuntimeException("Customer account is already activated");
         }
 
         generateNewActivationTokenAndSendEmail(existingCustomer);
+    }
+
+    public PageResponseVO<List<CustomerDetailsDTO>> getCustomers(String email, Pageable pageable) {
+        Page<Customer> customers = customerRepository.findByUser_EmailContainsIgnoreCase(email, pageable);
+        Page<CustomerDetailsDTO> detailsDTO = customers.map(CustomerDetailsDTO::new);
+
+        return new PageResponseVO<>(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                detailsDTO.hasNext(),
+                detailsDTO.getContent()
+        );
     }
 }

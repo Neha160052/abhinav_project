@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.entity.user.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,11 +14,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Async
 public class EmailServiceImpl {
 
     JavaMailSender javaMailSender;
 
-    @Async
     public void sendMail(String to, String subject, String body) {
         try {
             SimpleMailMessage mail = new SimpleMailMessage();
@@ -31,7 +32,6 @@ public class EmailServiceImpl {
         }
     }
 
-    @Async
     public void sendActivationEmail(String firstName, String toMail, String token) {
         try {
             SimpleMailMessage mail = new SimpleMailMessage();
@@ -47,7 +47,6 @@ public class EmailServiceImpl {
         }
     }
 
-    @Async
     public void sendPasswordResetEmail(String firstName, String toMail, String token) {
         try {
             SimpleMailMessage mail = new SimpleMailMessage();
@@ -58,6 +57,36 @@ public class EmailServiceImpl {
             javaMailSender.send(mail);
 
             log.info("Sent email to email: "+toMail);
+        } catch (Exception e) {
+            log.error("Error sending mail");
+        }
+    }
+
+    public void sendAdminActivationMail(User user) {
+        try {
+            SimpleMailMessage mail = new SimpleMailMessage();
+            mail.setTo(user.getEmail());
+            mail.setSubject("Account activation successful");
+            mail.setText("Hi "+user.getFirstName()+",\nYour account has been successfully activated by the Admin.");
+
+            javaMailSender.send(mail);
+
+            log.info("Sent email to email: "+user.getEmail());
+        } catch (Exception e) {
+            log.error("Error sending mail");
+        }
+    }
+
+    public void sendAdminDeactivationMail(User user) {
+        try {
+            SimpleMailMessage mail = new SimpleMailMessage();
+            mail.setTo(user.getEmail());
+            mail.setSubject("Account deactivated");
+            mail.setText("Hi "+user.getFirstName()+",\nYour account has been deactivated by the Admin.");
+
+            javaMailSender.send(mail);
+
+            log.info("Sent email to email: "+user.getEmail());
         } catch (Exception e) {
             log.error("Error sending mail");
         }

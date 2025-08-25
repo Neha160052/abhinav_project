@@ -8,12 +8,18 @@ import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.service.SellerService;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
+import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -50,5 +56,18 @@ public class SellerServiceImpl implements SellerService {
         newSeller.setGst(registerCO.getGst());
 
         return sellerRepository.save(newSeller);
+    }
+
+    @Override
+    public PageResponseVO<List<SellerDetailsDTO>> getSellers(String email, Pageable pageable) {
+        Page<Seller> sellers = sellerRepository.findByUser_EmailContainsIgnoreCase(email, pageable);
+        Page<SellerDetailsDTO> detailsDTO = sellers.map(SellerDetailsDTO::new);
+
+        return new PageResponseVO<>(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                detailsDTO.hasNext(),
+                detailsDTO.getContent()
+        );
     }
 }
