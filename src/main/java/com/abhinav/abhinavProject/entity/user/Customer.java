@@ -1,5 +1,7 @@
 package com.abhinav.abhinavProject.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Customer {
 
+    @JsonIgnore
     @Id
     Long id;
 
@@ -21,4 +24,7 @@ public class Customer {
 
     long contact;
 
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+            @JsonManagedReference
+    ActivationToken activationToken;
 }
