@@ -9,6 +9,7 @@ import com.abhinav.abhinavProject.repository.BlacklistTokensRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.AuthService;
+import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.utils.JwtService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
     JwtService jwtService;
     BlacklistTokensRepository blacklistTokensRepository;
+    AuthUtils authUtils;
 
     public String[] loginUser(LoginRequestCO loginRequestCO) {
         Authentication authentication = authenticationManager.authenticate(
@@ -110,10 +112,8 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Password Reset code expired. New reset link has been emailed.");
         }
 
-        user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordResetToken(null);
-
-        userRepository.save(user);
+        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
     }
 
     public String[] refreshJwtTokens(String refreshToken) {

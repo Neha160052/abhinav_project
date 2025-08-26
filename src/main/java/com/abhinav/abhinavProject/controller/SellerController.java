@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.controller;
 
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.service.SellerService;
@@ -36,5 +37,12 @@ public class SellerController {
     public ResponseEntity<String> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
         sellerService.updateSellerDetails(sellerProfileUpdateCO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+    }
+
+
+    @PatchMapping("/update-password")
+    public ResponseEntity<String> updateSellerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
+        sellerService.updateSellerPassword(resetPasswordCO);
+        return ResponseEntity.ok("Password updated successfully");
     }
 }

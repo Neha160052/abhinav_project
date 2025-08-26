@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service;
 
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.entity.user.Seller;
@@ -14,4 +15,5 @@ public interface SellerService {
     PageResponseVO<List<SellerDetailsDTO>> getSellers(String email, Pageable pageable);
     SellerDetailsDTO getSellerDetails();
     void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO);
+    void updateSellerPassword(ResetPasswordCO resetPasswordCO);
 }

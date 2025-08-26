@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.AddressDTO;
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.entity.user.Address;
@@ -12,6 +13,7 @@ import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.SellerService;
+import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.ValidationException;
@@ -38,6 +40,8 @@ public class SellerServiceImpl implements SellerService {
     SellerRepository sellerRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    AuthUtils authUtils;
+    EmailServiceImpl emailServiceImpl;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
@@ -124,5 +128,13 @@ public class SellerServiceImpl implements SellerService {
         seller.setUser(sellerUser);
 
         sellerRepository.save(seller);
+    }
+
+    @Override
+    public void updateSellerPassword(ResetPasswordCO resetPasswordCO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername()).get();
+        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
+        emailServiceImpl.sendPasswordUpdateMail(user);
     }
 }

@@ -64,4 +64,12 @@ public class EmailServiceImpl {
                 "Hi " + user.getFirstName() + ",\nYour account has been deactivated by the Admin."
         );
     }
+
+    public void sendPasswordUpdateMail(User user) {
+        sendMail(
+                user.getEmail(),
+                "Password updated successfully.",
+                "Hi " + user.getFirstName() + ",\nYour account password has been updated successfully."
+        );
+    }
 }
