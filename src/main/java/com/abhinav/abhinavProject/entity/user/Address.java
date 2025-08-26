@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.entity.user;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.ColumnDefault;
 
 @Builder
 @NoArgsConstructor
@@ -17,16 +18,22 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
+    @ColumnDefault("")
     String city;
 
+    @ColumnDefault("")
     String state;
 
+    @ColumnDefault("")
     String country;
 
+    @ColumnDefault("")
     String addressLine;
 
+    @ColumnDefault("000000")
     int zipCode;
 
+    @ColumnDefault("Office")
     String label;
 
 }

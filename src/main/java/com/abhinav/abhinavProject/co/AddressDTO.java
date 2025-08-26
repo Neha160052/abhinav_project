@@ -1,9 +1,6 @@
 package com.abhinav.abhinavProject.co;
 
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,9 +30,11 @@ public class AddressDTO {
         String addressLine;
 
         @Digits(message = "Zip code should be of 6 digits", integer = 6, fraction = 0)
+        @NotNull
         @Positive
         int zipCode;
 
         @Size(message = "Label cannot be more than 50 characters", max = 50)
+        @NotBlank
         String label;
 }

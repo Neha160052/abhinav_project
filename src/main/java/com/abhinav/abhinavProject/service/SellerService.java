@@ -11,4 +11,5 @@ import java.util.List;
 public interface SellerService {
     Seller registerSeller(SellerRegisterCO sellerRegisterCO);
     PageResponseVO<List<SellerDetailsDTO>> getSellers(String email, Pageable pageable);
+    SellerDetailsDTO getSellerDetails();
 }

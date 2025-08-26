@@ -22,6 +22,7 @@ public class SellerDetailsDTO {
     String companyName;
     long companyContact;
     Address companyAddress;
+    String gst;
 
     public SellerDetailsDTO(Seller seller) {
         String middleName = seller.getUser().getMiddleName();
@@ -36,6 +37,7 @@ public class SellerDetailsDTO {
         this.isLocked = seller.getUser().isLocked();
         this.companyName = seller.getCompanyName();
         this.companyContact = seller.getCompanyContact();
-        this.companyAddress = seller.getUser().getAddress().stream().findFirst().get();
+        this.companyAddress = seller.getUser().getAddress().stream().findFirst().orElse(new Address());
+        this.gst = seller.getGst();
     }
 }

@@ -9,6 +9,7 @@ import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -84,5 +86,12 @@ public class SellerServiceImpl implements SellerService {
                 detailsDTO.hasNext(),
                 detailsDTO.getContent()
         );
+    }
+
+    @Override
+    public SellerDetailsDTO getSellerDetails() {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
+        return new SellerDetailsDTO(seller);
     }
 }

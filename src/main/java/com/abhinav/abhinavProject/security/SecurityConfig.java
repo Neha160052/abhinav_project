@@ -33,22 +33,27 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(requests ->
-                    requests.requestMatchers("/customer/register", "/customer/activate").permitAll()
-                            .requestMatchers("/seller/register").permitAll()
-                            .requestMatchers(
-                                    "/auth/login",
-                                    "/auth/forgot-password",
-                                    "/api/auth/forgot-password/reset",
-                                    "/api/auth/refresh-token"
-                            ).permitAll()
-                            .requestMatchers(
-                                    "/admin/**"
-                            ).hasRole("ADMIN")
-                            .anyRequest().authenticated()
+                        requests.requestMatchers(
+                                        "/customer/register",
+                                        "/customer/activate"
+                                ).permitAll()
+                                .requestMatchers(
+                                        "/seller/register"
+                                ).permitAll()
+                                .requestMatchers(
+                                        "/auth/login",
+                                        "/auth/forgot-password",
+                                        "/api/auth/forgot-password/reset",
+                                        "/api/auth/refresh-token"
+                                ).permitAll()
+                                .requestMatchers(
+                                        "/admin/**"
+                                ).hasRole("ADMIN")
+                                .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)

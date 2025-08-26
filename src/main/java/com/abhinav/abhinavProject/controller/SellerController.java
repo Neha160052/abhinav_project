@@ -2,6 +2,7 @@ package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.service.SellerService;
+import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,9 +25,9 @@ public class SellerController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/hello")
-    public ResponseEntity<String> getString() {
-        return ResponseEntity.ok("Hello in seller");
+    @GetMapping("/profile")
+    public ResponseEntity<SellerDetailsDTO> getSellerProfile() {
+        return ResponseEntity.ok(sellerService.getSellerDetails());
     }
 
 }
