@@ -1,8 +1,10 @@
 package com.abhinav.abhinavProject.controller;
 
+import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,7 +21,7 @@ public class SellerController {
     SellerService sellerService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerNewSeller(@RequestBody SellerRegisterCO sellerRegisterCO) {
+    public ResponseEntity<String> registerNewSeller(@RequestBody @Valid SellerRegisterCO sellerRegisterCO) {
         sellerService.registerSeller(sellerRegisterCO);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -30,4 +32,9 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerDetails());
     }
 
+    @PatchMapping("/profile")
+    public ResponseEntity<String> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
+        sellerService.updateSellerDetails(sellerProfileUpdateCO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+    }
 }

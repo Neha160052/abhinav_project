@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.AddressDTO;
+import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Role;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -93,5 +96,33 @@ public class SellerServiceImpl implements SellerService {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
         return new SellerDetailsDTO(seller);
+    }
+
+    @Override
+    public void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
+        User sellerUser = seller.getUser();
+        if(nonNull(sellerProfileUpdateCO.getFirstName())) {
+            sellerUser.setFirstName(sellerProfileUpdateCO.getFirstName());
+        }
+        if(nonNull(sellerProfileUpdateCO.getMiddleName())) {
+            sellerUser.setMiddleName(sellerUser.getMiddleName());
+        }
+        if(nonNull(sellerProfileUpdateCO.getLastName())) {
+            sellerUser.setLastName(sellerProfileUpdateCO.getLastName());
+        }
+        if(nonNull(sellerProfileUpdateCO.getCompanyContact())) {
+            seller.setCompanyContact(Long.parseLong(sellerProfileUpdateCO.getCompanyName()));
+        }
+        if(nonNull(sellerProfileUpdateCO.getGst())) {
+            seller.setGst(sellerProfileUpdateCO.getGst());
+        }
+        if(nonNull(sellerProfileUpdateCO.getCompanyName())) {
+            seller.setCompanyName(sellerProfileUpdateCO.getCompanyName());
+        }
+        seller.setUser(sellerUser);
+
+        sellerRepository.save(seller);
     }
 }

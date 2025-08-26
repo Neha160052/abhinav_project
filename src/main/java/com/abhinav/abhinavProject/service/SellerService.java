@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service;
 
+import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -12,4 +13,5 @@ public interface SellerService {
     Seller registerSeller(SellerRegisterCO sellerRegisterCO);
     PageResponseVO<List<SellerDetailsDTO>> getSellers(String email, Pageable pageable);
     SellerDetailsDTO getSellerDetails();
+    void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO);
 }
