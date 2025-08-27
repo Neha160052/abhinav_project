@@ -1,6 +1,9 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.co.AddressPatchDTO;
+import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.service.UserService;
 import lombok.AccessLevel;
@@ -8,13 +11,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import static java.util.Objects.nonNull;
+
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     UserRepository userRepository;
-    private final EmailServiceImpl emailServiceImpl;
+    EmailServiceImpl emailServiceImpl;
+    AddressRepository addressRepository;
 
     @Override
     public String activateUserAccount(long id) {
@@ -22,7 +28,7 @@ public class UserServiceImpl implements UserService {
                 () -> new RuntimeException("Invalid User id provided")
         );
 
-        if(user.isActive()) {
+        if (user.isActive()) {
             return "User is already activated.";
         }
 
@@ -39,7 +45,7 @@ public class UserServiceImpl implements UserService {
                 () -> new RuntimeException("Invalid User id provided")
         );
 
-        if(!user.isActive()) {
+        if (!user.isActive()) {
             return "User is already deactivated.";
         }
 
@@ -48,5 +54,28 @@ public class UserServiceImpl implements UserService {
         emailServiceImpl.sendAdminDeactivationMail(user);
 
         return "User account has been deactivated successfully.";
+    }
+
+    @Override
+    public void updateUserAddress(long id, String email, AddressPatchDTO addressPatchDTO) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Address address = addressRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new RuntimeException("No address found for the user by this id"));
+
+        if (nonNull(addressPatchDTO.getCity()))
+            address.setCity(addressPatchDTO.getCity());
+        if (nonNull(addressPatchDTO.getState()))
+            address.setState(addressPatchDTO.getState());
+        if (nonNull(addressPatchDTO.getCountry()))
+            address.setCountry(addressPatchDTO.getCountry());
+        if (nonNull(addressPatchDTO.getAddressLine()))
+            address.setAddressLine(addressPatchDTO.getAddressLine());
+        if (nonNull(addressPatchDTO.getZipCode()))
+            address.setZipCode(addressPatchDTO.getZipCode());
+        if (nonNull(addressPatchDTO.getLabel()))
+            address.setLabel(addressPatchDTO.getLabel());
+
+        addressRepository.save(address);
     }
 }

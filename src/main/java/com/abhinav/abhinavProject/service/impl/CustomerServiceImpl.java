@@ -1,14 +1,19 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
-import com.abhinav.abhinavProject.entity.user.*;
+import com.abhinav.abhinavProject.entity.user.ActivationToken;
+import com.abhinav.abhinavProject.entity.user.Customer;
+import com.abhinav.abhinavProject.entity.user.Role;
+import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -39,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
     PasswordEncoder passwordEncoder;
     EmailServiceImpl emailServiceImpl;
     AuthUtils authUtils;
+    UserService userService;
 
     public Customer registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
@@ -167,5 +173,11 @@ public class CustomerServiceImpl implements CustomerService {
         User user = userRepository.findByEmail(principal.getUsername()).get();
         authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
         emailServiceImpl.sendPasswordUpdateMail(user);
+    }
+
+    @Override
+    public void updateCustomerAddress(long id, AddressPatchDTO addressPatchDTO) {
+        UserPrinciple userPrinciple = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userService.updateUserAddress(id, userPrinciple.getUsername(), addressPatchDTO);
     }
 }

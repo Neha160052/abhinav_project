@@ -1,7 +1,9 @@
 package com.abhinav.abhinavProject.controller;
 
-import com.abhinav.abhinavProject.co.*;
-import com.abhinav.abhinavProject.security.UserPrinciple;
+import com.abhinav.abhinavProject.co.AddressPatchDTO;
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
+import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
+import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.Valid;
@@ -10,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,9 +50,7 @@ public class SellerController {
     public ResponseEntity<String> updateSellerAddress(@RequestParam long id,
                                                       @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
-        UserPrinciple userPrinciple = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = userPrinciple.getUsername();
-        sellerService.updateSellerAddress(id, email, addressPatchDTO);
+        sellerService.updateSellerAddress(id, addressPatchDTO);
         return ResponseEntity.ok("Address updated successfully");
     }
 }

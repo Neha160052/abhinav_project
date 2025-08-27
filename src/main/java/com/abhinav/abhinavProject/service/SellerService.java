@@ -17,5 +17,5 @@ public interface SellerService {
     SellerDetailsDTO getSellerDetails();
     void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO);
     void updateSellerPassword(ResetPasswordCO resetPasswordCO);
-    void updateSellerAddress(long id, String email, AddressPatchDTO addressPatchDTO);
+    void updateSellerAddress(long id, AddressPatchDTO addressPatchDTO);
 }

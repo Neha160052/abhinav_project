@@ -5,12 +5,12 @@ import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
-import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.SellerService;
+import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
@@ -42,7 +42,7 @@ public class SellerServiceImpl implements SellerService {
     PasswordEncoder passwordEncoder;
     AuthUtils authUtils;
     EmailServiceImpl emailServiceImpl;
-    AddressRepository addressRepository;
+    UserService userService;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
@@ -108,24 +108,20 @@ public class SellerServiceImpl implements SellerService {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
         User sellerUser = seller.getUser();
-        if(nonNull(sellerProfileUpdateCO.getFirstName())) {
+
+        if(nonNull(sellerProfileUpdateCO.getFirstName()))
             sellerUser.setFirstName(sellerProfileUpdateCO.getFirstName());
-        }
-        if(nonNull(sellerProfileUpdateCO.getMiddleName())) {
+        if(nonNull(sellerProfileUpdateCO.getMiddleName()))
             sellerUser.setMiddleName(sellerUser.getMiddleName());
-        }
-        if(nonNull(sellerProfileUpdateCO.getLastName())) {
+        if(nonNull(sellerProfileUpdateCO.getLastName()))
             sellerUser.setLastName(sellerProfileUpdateCO.getLastName());
-        }
-        if(nonNull(sellerProfileUpdateCO.getCompanyContact())) {
+        if(nonNull(sellerProfileUpdateCO.getCompanyContact()))
             seller.setCompanyContact(Long.parseLong(sellerProfileUpdateCO.getCompanyName()));
-        }
-        if(nonNull(sellerProfileUpdateCO.getGst())) {
+        if(nonNull(sellerProfileUpdateCO.getGst()))
             seller.setGst(sellerProfileUpdateCO.getGst());
-        }
-        if(nonNull(sellerProfileUpdateCO.getCompanyName())) {
+        if(nonNull(sellerProfileUpdateCO.getCompanyName()))
             seller.setCompanyName(sellerProfileUpdateCO.getCompanyName());
-        }
+
         seller.setUser(sellerUser);
 
         sellerRepository.save(seller);
@@ -140,25 +136,8 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public void updateSellerAddress(long id, String email, AddressPatchDTO addressPatchDTO) {
-        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
-
-        Address address = addressRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("No address found for the user by this id"));
-
-        if(nonNull(addressPatchDTO.getCity()))
-            address.setCity(addressPatchDTO.getCity());
-        if(nonNull(addressPatchDTO.getState()))
-            address.setState(addressPatchDTO.getState());
-        if(nonNull(addressPatchDTO.getCountry()))
-            address.setCountry(addressPatchDTO.getCountry());
-        if(nonNull(addressPatchDTO.getAddressLine()))
-            address.setAddressLine(addressPatchDTO.getAddressLine());
-        if(nonNull(addressPatchDTO.getZipCode()))
-            address.setZipCode(addressPatchDTO.getZipCode());
-        if(nonNull(addressPatchDTO.getLabel()))
-            address.setLabel(addressPatchDTO.getLabel());
-
-        addressRepository.save(address);
+    public void updateSellerAddress(long id, AddressPatchDTO addressPatchDTO) {
+        UserPrinciple userPrinciple = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userService.updateUserAddress(id, userPrinciple.getUsername(), addressPatchDTO);
     }
 }
