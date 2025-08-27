@@ -2,12 +2,14 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
@@ -36,6 +38,7 @@ public class CustomerServiceImpl implements CustomerService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     EmailServiceImpl emailServiceImpl;
+    AuthUtils authUtils;
 
     public Customer registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
@@ -156,5 +159,13 @@ public class CustomerServiceImpl implements CustomerService {
 
         customer.setUser(customerUser);
         customerRepository.save(customer);
+    }
+
+    @Override
+    public void updateCustomerPassword(ResetPasswordCO resetPasswordCO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername()).get();
+        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
+        emailServiceImpl.sendPasswordUpdateMail(user);
     }
 }

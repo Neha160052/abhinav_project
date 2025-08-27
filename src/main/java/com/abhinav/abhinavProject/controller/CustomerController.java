@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
 import com.abhinav.abhinavProject.co.EmailRequestCO;
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import jakarta.validation.Valid;
@@ -48,5 +49,11 @@ public class CustomerController {
     public ResponseEntity<String> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
         customerService.updateCustomerDetails(customerProfileUpdateCO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+    }
+
+    @PatchMapping("/update-password")
+    public ResponseEntity<String> updateCustomerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
+        customerService.updateCustomerPassword(resetPasswordCO);
+        return ResponseEntity.ok("Password updated successfully");
     }
 }
