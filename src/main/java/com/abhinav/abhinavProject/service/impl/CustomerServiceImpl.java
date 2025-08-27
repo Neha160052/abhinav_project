@@ -1,13 +1,12 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
-import com.abhinav.abhinavProject.entity.user.ActivationToken;
-import com.abhinav.abhinavProject.entity.user.Customer;
-import com.abhinav.abhinavProject.entity.user.Role;
-import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -17,12 +16,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -109,16 +111,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public void resendActivationCode(String email) {
-        Customer existingCustomer = customerRepository.findByUser_Email(email);
-
-        if (existingCustomer == null) {
-            throw new RuntimeException("Customer with email " + email + " does not exist");
-        }
+        Customer existingCustomer = customerRepository.findByUser_Email(email)
+                .orElseThrow(() -> new RuntimeException("Customer with email " + email + " does not exist"));
 
         if (existingCustomer.getUser().isActive()) {
             throw new RuntimeException("Customer account is already activated");
         }
-
         generateNewActivationTokenAndSendEmail(existingCustomer);
     }
 
@@ -132,5 +130,12 @@ public class CustomerServiceImpl implements CustomerService {
                 detailsDTO.hasNext(),
                 detailsDTO.getContent()
         );
+    }
+
+    @Override
+    public CustomerDetailsDTO getCustomerDetails() {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
+        return new CustomerDetailsDTO(customer);
     }
 }

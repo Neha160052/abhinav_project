@@ -35,7 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers(
                                         "/customer/register",
-                                        "/customer/activate"
+                                        "/customer/activate",
+                                        "/customer/activate/resend"
                                 ).permitAll()
                                 .requestMatchers(
                                         "/seller/register"
