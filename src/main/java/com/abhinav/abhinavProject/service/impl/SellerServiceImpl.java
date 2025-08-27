@@ -40,8 +40,6 @@ public class SellerServiceImpl implements SellerService {
     SellerRepository sellerRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-    AuthUtils authUtils;
-    EmailServiceImpl emailServiceImpl;
     UserService userService;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
@@ -129,10 +127,7 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public void updateSellerPassword(ResetPasswordCO resetPasswordCO) {
-        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findByEmail(principal.getUsername()).get();
-        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
-        emailServiceImpl.sendPasswordUpdateMail(user);
+        userService.updateUserPassword(resetPasswordCO);
     }
 
     @Override

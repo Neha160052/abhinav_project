@@ -43,7 +43,6 @@ public class CustomerServiceImpl implements CustomerService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     EmailServiceImpl emailServiceImpl;
-    AuthUtils authUtils;
     UserService userService;
 
     public Customer registerCustomer(CustomerRegisterCO registerCO) {
@@ -169,10 +168,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void updateCustomerPassword(ResetPasswordCO resetPasswordCO) {
-        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findByEmail(principal.getUsername()).get();
-        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
-        emailServiceImpl.sendPasswordUpdateMail(user);
+        userService.updateUserPassword(resetPasswordCO);
     }
 
     @Override

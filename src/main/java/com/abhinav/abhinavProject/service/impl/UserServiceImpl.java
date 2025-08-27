@@ -1,14 +1,18 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.AddressPatchDTO;
+import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.utils.AuthUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import static java.util.Objects.nonNull;
@@ -21,6 +25,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     EmailServiceImpl emailServiceImpl;
     AddressRepository addressRepository;
+    AuthUtils authUtils;
 
     @Override
     public String activateUserAccount(long id) {
@@ -54,6 +59,15 @@ public class UserServiceImpl implements UserService {
         emailServiceImpl.sendAdminDeactivationMail(user);
 
         return "User account has been deactivated successfully.";
+    }
+
+    @Override
+    public void updateUserPassword(ResetPasswordCO resetPasswordCO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername())
+                .orElseThrow(()-> new RuntimeException("User not found"));
+        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
+        emailServiceImpl.sendPasswordUpdateMail(user);
     }
 
     @Override
