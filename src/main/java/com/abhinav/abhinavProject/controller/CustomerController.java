@@ -44,9 +44,9 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerDetails());
     }
 
-//    @PatchMapping("/profile")
-//    public ResponseEntity<String> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
-//        customerService.updateSellerDetails(customerProfileUpdateCO);
-//        return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
-//    }
+    @PatchMapping("/profile")
+    public ResponseEntity<String> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
+        customerService.updateCustomerDetails(customerProfileUpdateCO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+    }
 }

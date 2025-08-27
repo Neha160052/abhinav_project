@@ -22,5 +22,5 @@ public interface CustomerService {
 
     CustomerDetailsDTO getCustomerDetails();
 
-//    void updateSellerDetails(CustomerProfileUpdateCO customerProfileUpdateCO);
+    void updateCustomerDetails(CustomerProfileUpdateCO customerProfileUpdateCO);
 }

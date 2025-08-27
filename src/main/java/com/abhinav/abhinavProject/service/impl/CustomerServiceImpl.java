@@ -138,4 +138,23 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
         return new CustomerDetailsDTO(customer);
     }
+
+    @Override
+    public void updateCustomerDetails(CustomerProfileUpdateCO customerProfileUpdateCO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
+        User customerUser = customer.getUser();
+
+        if(nonNull(customerProfileUpdateCO.getFirstName()))
+            customerUser.setFirstName(customerProfileUpdateCO.getFirstName());
+        if(nonNull(customerProfileUpdateCO.getMiddleName()))
+            customerUser.setMiddleName(customerUser.getMiddleName());
+        if(nonNull(customerProfileUpdateCO.getLastName()))
+            customerUser.setLastName(customerProfileUpdateCO.getLastName());
+        if(nonNull(customerProfileUpdateCO.getContact()))
+            customer.setContact(Long.parseLong(customerProfileUpdateCO.getContact()));
+
+        customer.setUser(customerUser);
+        customerRepository.save(customer);
+    }
 }
