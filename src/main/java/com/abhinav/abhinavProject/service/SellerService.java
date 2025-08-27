@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service;
 
+import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
@@ -16,4 +17,5 @@ public interface SellerService {
     SellerDetailsDTO getSellerDetails();
     void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO);
     void updateSellerPassword(ResetPasswordCO resetPasswordCO);
+    void updateSellerAddress(long id, String email, AddressPatchDTO addressPatchDTO);
 }

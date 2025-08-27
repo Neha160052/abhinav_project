@@ -1,13 +1,11 @@
 package com.abhinav.abhinavProject.service.impl;
 
-import com.abhinav.abhinavProject.co.AddressDTO;
-import com.abhinav.abhinavProject.co.ResetPasswordCO;
-import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
-import com.abhinav.abhinavProject.co.SellerRegisterCO;
+import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
@@ -20,6 +18,7 @@ import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +30,7 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -42,6 +42,7 @@ public class SellerServiceImpl implements SellerService {
     PasswordEncoder passwordEncoder;
     AuthUtils authUtils;
     EmailServiceImpl emailServiceImpl;
+    AddressRepository addressRepository;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
@@ -136,5 +137,28 @@ public class SellerServiceImpl implements SellerService {
         User user = userRepository.findByEmail(principal.getUsername()).get();
         authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
         emailServiceImpl.sendPasswordUpdateMail(user);
+    }
+
+    @Override
+    public void updateSellerAddress(long id, String email, AddressPatchDTO addressPatchDTO) {
+        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+
+        Address address = addressRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new RuntimeException("No address found for the user by this id"));
+
+        if(nonNull(addressPatchDTO.getCity()))
+            address.setCity(addressPatchDTO.getCity());
+        if(nonNull(addressPatchDTO.getState()))
+            address.setState(addressPatchDTO.getState());
+        if(nonNull(addressPatchDTO.getCountry()))
+            address.setCountry(addressPatchDTO.getCountry());
+        if(nonNull(addressPatchDTO.getAddressLine()))
+            address.setAddressLine(addressPatchDTO.getAddressLine());
+        if(nonNull(addressPatchDTO.getZipCode()))
+            address.setZipCode(addressPatchDTO.getZipCode());
+        if(nonNull(addressPatchDTO.getLabel()))
+            address.setLabel(addressPatchDTO.getLabel());
+
+        addressRepository.save(address);
     }
 }

@@ -1,7 +1,7 @@
 package com.abhinav.abhinavProject.entity.user;
 
 import com.abhinav.abhinavProject.entity.AuditData;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,12 +53,12 @@ public class User {
     @JoinColumn(name = "role_id")
     Role role;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     Set<Address> address;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @JsonManagedReference
     PasswordResetToken passwordResetToken;
 
     @Embedded
