@@ -16,9 +16,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -29,6 +31,25 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
     JwtService jwtService;
     BlacklistTokensRepository blacklistTokensRepository;
     UserDetailsService userDetailsService;
+    AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    static String[] PUBLIC_ENDPOINTS = {
+            "/customer/register",
+            "/customer/activate",
+            "/customer/activate/resend",
+            "/seller/register",
+            "/auth/login",
+            "/auth/forgot-password",
+            "/auth/forgot-password/reset",
+            "/auth/refresh-token"
+    };
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return Arrays.stream(PUBLIC_ENDPOINTS)
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
