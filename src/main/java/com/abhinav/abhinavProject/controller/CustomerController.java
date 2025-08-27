@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.*;
+import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import jakarta.validation.Valid;
@@ -10,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/customer")
@@ -42,6 +45,11 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerDetails());
     }
 
+    @GetMapping("/address")
+    public ResponseEntity<Set<Address>> getCustomerAddresses() {
+        return ResponseEntity.ok(customerService.getCustomerAddresses());
+    }
+
     @PatchMapping("/profile")
     public ResponseEntity<String> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
         customerService.updateCustomerDetails(customerProfileUpdateCO);
@@ -56,7 +64,7 @@ public class CustomerController {
 
     @PatchMapping("/update-address")
     public ResponseEntity<String> updateCustomerAddress(@RequestParam long id,
-                                                      @RequestBody @Valid AddressPatchDTO addressPatchDTO
+                                                        @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         customerService.updateCustomerAddress(id, addressPatchDTO);
         return ResponseEntity.ok("Address updated successfully");

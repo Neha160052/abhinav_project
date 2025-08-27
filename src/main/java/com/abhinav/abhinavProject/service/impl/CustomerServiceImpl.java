@@ -4,17 +4,13 @@ import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
-import com.abhinav.abhinavProject.entity.user.ActivationToken;
-import com.abhinav.abhinavProject.entity.user.Customer;
-import com.abhinav.abhinavProject.entity.user.Role;
-import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.UserService;
-import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
@@ -29,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
@@ -145,6 +142,14 @@ public class CustomerServiceImpl implements CustomerService {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
         return new CustomerDetailsDTO(customer);
+    }
+
+    @Override
+    public Set<Address> getCustomerAddresses() {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername())
+                .orElseThrow(()-> new RuntimeException("User not Found"));
+        return user.getAddress();
     }
 
     @Override

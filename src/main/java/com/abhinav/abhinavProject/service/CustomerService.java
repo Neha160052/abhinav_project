@@ -5,12 +5,14 @@ import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.CustomerRegisterCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
+import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 public interface CustomerService {
     Customer registerCustomer(CustomerRegisterCO customerRegisterCO);
@@ -28,4 +30,6 @@ public interface CustomerService {
     void updateCustomerPassword(ResetPasswordCO resetPasswordCO);
 
     void updateCustomerAddress(long id, AddressPatchDTO addressPatchDTO);
+
+    Set<Address> getCustomerAddresses();
 }
