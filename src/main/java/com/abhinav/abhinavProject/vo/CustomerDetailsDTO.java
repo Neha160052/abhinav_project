@@ -22,12 +22,12 @@ public class CustomerDetailsDTO {
 
     public CustomerDetailsDTO(Customer customer){
         String middleName = customer.getUser().getMiddleName();
+        StringJoiner joiner = new StringJoiner(" ").add(customer.getUser().getFirstName());
+        if(middleName!=null) joiner.add(middleName);
+        joiner.add(customer.getUser().getLastName());
+
         this.id = customer.getId();
-        this.fullName = new StringJoiner(" ")
-                .add(customer.getUser().getFirstName())
-                .add(middleName != null ? middleName : "")
-                .add(customer.getUser().getLastName())
-                .toString();
+        this.fullName = joiner.toString();
         this.email = customer.getUser().getEmail();
         this.contact = customer.getContact();
         this.isActive = customer.getUser().isActive();

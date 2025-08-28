@@ -25,7 +25,7 @@ public class CustomerProfileUpdateCO {
             regexp = Regex.NAME,
             message = "Middle name cannot be blank and only contain alphabets"
     )
-    String middleName = "";
+    String middleName;
 
     @Size(min = 3, max = 20, message = "Last name should be between 3 and 20 characters")
     @Pattern(

@@ -50,6 +50,12 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         "/admin/**"
                                 ).hasRole("ADMIN")
+                                .requestMatchers(
+                                        "/customer/**"
+                                ).hasRole("CUSTOMER")
+                                .requestMatchers(
+                                        "/seller/**"
+                                ).hasRole("SELLER")
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
