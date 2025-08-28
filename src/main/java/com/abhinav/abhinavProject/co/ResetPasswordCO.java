@@ -23,6 +23,7 @@ public class ResetPasswordCO {
     String password;
 
     @NotBlank(message = "Confirm Password is required")
+    @Size(min = 8, max = 15, message = "Confirm Password must be between 8 and 15 characters")
     String confirmPassword;
 
 }

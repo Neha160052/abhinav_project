@@ -16,16 +16,27 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SellerRegisterCO {
 
-
     @NotBlank(message = "First name is required")
     @Size(min = 3, max = 20, message = "First name should be between 3 and 50 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "Only alphabets allowed in name"
+    )
     String firstName;
 
-    @Size(max = 20, message = "Middle name should be max 20 characters")
+    @Size(min = 3, max = 20, message = "Middle name should be between 3 and 20 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "Middle name cannot be blank"
+    )
     String middleName;
 
     @NotBlank(message = "Last name is required")
     @Size(min = 3, max = 20, message = "Last name should be between 3 and 20 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "Only alphabets allowed in name"
+    )
     String lastName;
 
     @NotBlank(message = "Email is required")
@@ -48,10 +59,11 @@ public class SellerRegisterCO {
     String password;
 
     @NotBlank(message = "Confirm Password is required")
+    @Size(min = 8, max = 15, message = "Confirm Password must be between 8 and 15 characters")
     String confirmPassword;
 
     @NotBlank
-    @Pattern(regexp = Regex.GST)
+    @Pattern(regexp = Regex.GST, message = "Invalid GST format provided")
     String gst;
 
     @NotBlank(message = "Company name is required")

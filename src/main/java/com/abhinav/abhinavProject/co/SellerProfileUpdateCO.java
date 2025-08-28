@@ -13,12 +13,24 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SellerProfileUpdateCO {
     @Size(min = 3, max = 20, message = "First name should be between 3 and 50 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "First name cannot be blank and only contain alphabets"
+    )
     String firstName;
 
-    @Size(max = 20, message = "Middle name should be max 20 characters")
-    String middleName;
+    @Size(min = 3, max = 20, message = "Middle name should be between 3 and 20 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "Middle name cannot be blank and only contain alphabets"
+    )
+    String middleName = "";
 
     @Size(min = 3, max = 20, message = "Last name should be between 3 and 20 characters")
+    @Pattern(
+            regexp = Regex.NAME,
+            message = "Last name cannot be blank and only contain alphabets"
+    )
     String lastName;
 
     @Pattern(
@@ -27,7 +39,7 @@ public class SellerProfileUpdateCO {
     )
     String companyContact;
 
-    @Pattern(regexp = Regex.GST)
+    @Pattern(regexp = Regex.GST, message = "Invalid GST format provided")
     String gst;
 
     @Size(min = 3, max = 20, message = "Name should be between 3 and 50 characters")

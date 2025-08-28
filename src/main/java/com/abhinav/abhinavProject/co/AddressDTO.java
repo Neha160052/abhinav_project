@@ -25,16 +25,18 @@ public class AddressDTO {
         @NotBlank(message = "Country name cannot be blank")
         String country;
 
-        @Size(message = "Address line should be more than 4 characters long", min = 4)
+        @Size(message = "Address line should be more than 4 characters long", min = 4, max = 100)
         @NotBlank
         String addressLine;
 
         @Digits(message = "Zip code should be of 6 digits", integer = 6, fraction = 0)
+        @Min(6)
+        @Max(6)
         @NotNull
         @Positive
         int zipCode;
 
-        @Size(message = "Label cannot be more than 50 characters", max = 50)
+        @Size(message = "Label should be between 2 and 50 characters", min = 2, max = 50)
         @NotBlank
         String label;
 }
