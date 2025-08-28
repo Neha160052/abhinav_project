@@ -30,7 +30,11 @@ public class SecurityConfig {
     JwtSecurityFilter jwtSecurityFilter;
 
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(
+            HttpSecurity httpSecurity,
+            JwtAuthEntryPoint jwtAuthEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler
+    ) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers(
@@ -63,6 +67,10 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthEntryPoint)       // 401 handler
+                        .accessDeniedHandler(customAccessDeniedHandler)   // 403 handler
+                )
                 .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
