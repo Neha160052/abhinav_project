@@ -1,10 +1,6 @@
 package com.abhinav.abhinavProject.service;
 
-
-import com.abhinav.abhinavProject.co.AddressPatchDTO;
-import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
-import com.abhinav.abhinavProject.co.CustomerRegisterCO;
-import com.abhinav.abhinavProject.co.ResetPasswordCO;
+import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
@@ -32,4 +28,6 @@ public interface CustomerService {
     void updateCustomerAddress(long id, AddressPatchDTO addressPatchDTO);
 
     Set<Address> getCustomerAddresses();
+
+    void addCustomerAddress(AddressDTO addressDTO);
 }

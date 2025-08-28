@@ -69,4 +69,10 @@ public class CustomerController {
         customerService.updateCustomerAddress(id, addressPatchDTO);
         return ResponseEntity.ok("Address updated successfully");
     }
+
+    @PostMapping("/add-address")
+    public ResponseEntity<String> addCustomerAddress(@RequestBody @Valid AddressDTO addressDTO) {
+        customerService.addCustomerAddress(addressDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Address added successfully.");
+    }
 }

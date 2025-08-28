@@ -1,9 +1,6 @@
 package com.abhinav.abhinavProject.service.impl;
 
-import com.abhinav.abhinavProject.co.AddressPatchDTO;
-import com.abhinav.abhinavProject.co.CustomerProfileUpdateCO;
-import com.abhinav.abhinavProject.co.CustomerRegisterCO;
-import com.abhinav.abhinavProject.co.ResetPasswordCO;
+import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
@@ -180,5 +177,25 @@ public class CustomerServiceImpl implements CustomerService {
     public void updateCustomerAddress(long id, AddressPatchDTO addressPatchDTO) {
         UserPrinciple userPrinciple = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userService.updateUserAddress(id, userPrinciple.getUsername(), addressPatchDTO);
+    }
+
+    @Override
+    public void addCustomerAddress(AddressDTO addressDTO) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername()).get();
+
+        Address address = Address
+                .builder()
+                .user(user)
+                .city(addressDTO.getCity())
+                .state(addressDTO.getState())
+                .country(addressDTO.getCountry())
+                .addressLine(addressDTO.getAddressLine())
+                .zipCode(addressDTO.getZipCode())
+                .label(addressDTO.getLabel())
+                .build();
+
+        user.getAddress().add(address);
+        userRepository.save(user);
     }
 }
