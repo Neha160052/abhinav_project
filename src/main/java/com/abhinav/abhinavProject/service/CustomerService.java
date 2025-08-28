@@ -30,4 +30,6 @@ public interface CustomerService {
     Set<Address> getCustomerAddresses();
 
     void addCustomerAddress(AddressDTO addressDTO);
+
+    void deleteCustomerAddress(long addressId);
 }

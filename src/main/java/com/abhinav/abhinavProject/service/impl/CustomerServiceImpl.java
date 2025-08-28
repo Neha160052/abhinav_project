@@ -2,6 +2,7 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
+import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
@@ -38,6 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     PasswordEncoder passwordEncoder;
     EmailServiceImpl emailServiceImpl;
     UserService userService;
+    AddressRepository addressRepository;
 
     public Customer registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
@@ -197,5 +199,18 @@ public class CustomerServiceImpl implements CustomerService {
 
         user.getAddress().add(address);
         userRepository.save(user);
+    }
+
+    @Override
+    public void deleteCustomerAddress(long addressId) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("No User found"));
+
+        if(!addressRepository.existsByIdAndUser_Id(addressId, user.getId())) {
+            throw new RuntimeException("Invalid Address id provided.");
+        }
+
+        addressRepository.deleteById(addressId);
     }
 }

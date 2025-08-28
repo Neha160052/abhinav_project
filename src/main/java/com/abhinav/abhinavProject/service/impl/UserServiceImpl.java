@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
     public void updateUserAddress(long id, String email, AddressPatchDTO addressPatchDTO) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        Address address = addressRepository.findByIdAndUserId(id, user.getId())
+        Address address = addressRepository.findByIdAndUser_Id(id, user.getId())
                 .orElseThrow(() -> new RuntimeException("No address found for the user by this id"));
 
         if (nonNull(addressPatchDTO.getCity()))

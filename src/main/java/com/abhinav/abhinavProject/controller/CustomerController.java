@@ -75,4 +75,10 @@ public class CustomerController {
         customerService.addCustomerAddress(addressDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Address added successfully.");
     }
+
+    @DeleteMapping("/delete-address")
+    public ResponseEntity<String> deleteCustomerAddress(@RequestParam("id") long addressId) {
+        customerService.deleteCustomerAddress(addressId);
+        return ResponseEntity.noContent().build();
+    }
 }
