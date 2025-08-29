@@ -2,16 +2,16 @@ package com.abhinav.abhinavProject.service;
 
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
-import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
 
 public interface CustomerService {
-    Customer registerCustomer(CustomerRegisterCO customerRegisterCO);
+    void registerCustomer(CustomerRegisterCO customerRegisterCO, MultipartFile file);
 
     void activateCustomerAccount(String token);
 

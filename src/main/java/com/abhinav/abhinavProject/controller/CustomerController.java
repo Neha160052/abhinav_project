@@ -9,8 +9,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
@@ -22,9 +24,10 @@ public class CustomerController {
 
     CustomerService customerService;
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerCustomer(@RequestBody @Valid CustomerRegisterCO customerRegisterCO) {
-        customerService.registerCustomer(customerRegisterCO);
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> registerCustomer(@RequestPart("profileData") @Valid CustomerRegisterCO customerRegisterCO,
+                                                   @RequestPart(value = "profileImage", required = false)MultipartFile file) {
+        customerService.registerCustomer(customerRegisterCO, file);
         return ResponseEntity.ok("User Registered");
     }
 

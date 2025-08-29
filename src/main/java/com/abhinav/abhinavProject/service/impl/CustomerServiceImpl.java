@@ -8,6 +8,7 @@ import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -18,9 +19,13 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -40,8 +45,9 @@ public class CustomerServiceImpl implements CustomerService {
     EmailServiceImpl emailServiceImpl;
     UserService userService;
     AddressRepository addressRepository;
+    ImageService imageService;
 
-    public Customer registerCustomer(CustomerRegisterCO registerCO) {
+    public void registerCustomer(CustomerRegisterCO registerCO, MultipartFile file) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
             throw new ValidationException("Email already registered");
         }
@@ -65,8 +71,16 @@ public class CustomerServiceImpl implements CustomerService {
 
         customer.setUser(user);
         customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
+        Customer newCustomer = generateNewActivationTokenAndSendEmail(customer);
 
-        return generateNewActivationTokenAndSendEmail(customer);
+        if (file != null && !file.isEmpty()) {
+            try {
+                imageService.save(file, newCustomer.getId());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to store profile picture for user " + customer.getId(), e);
+            }
+        }
+
     }
 
     private Customer generateNewActivationTokenAndSendEmail(Customer customer) {
@@ -127,6 +141,7 @@ public class CustomerServiceImpl implements CustomerService {
     public PageResponseVO<List<CustomerDetailsDTO>> getCustomers(String email, Pageable pageable) {
         Page<Customer> customers = customerRepository.findByUser_EmailContainsIgnoreCase(email, pageable);
         Page<CustomerDetailsDTO> detailsDTO = customers.map(CustomerDetailsDTO::new);
+        detailsDTO = detailsDTO.map(this::setProfileImage);
 
         return new PageResponseVO<>(
                 pageable.getPageNumber(),
@@ -139,8 +154,9 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDetailsDTO getCustomerDetails() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
-        return new CustomerDetailsDTO(customer);
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(()->new UsernameNotFoundException("Could not find customer details"));
+        return setProfileImage(new CustomerDetailsDTO(customer));
     }
 
     @Override
@@ -212,5 +228,23 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         addressRepository.deleteById(addressId);
+    }
+
+    private CustomerDetailsDTO setProfileImage(CustomerDetailsDTO dto) {
+        try {
+            if (imageService.fileExists(dto.getId()).isPresent()) {
+                String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/static/")
+                        .path(String.valueOf(dto.getId()))
+                        .path("/profile-image")
+                        .toUriString();
+                dto.setProfileImage(uri);
+            } else {
+                dto.setProfileImage("No Image Uploaded.");
+            }
+            return dto;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

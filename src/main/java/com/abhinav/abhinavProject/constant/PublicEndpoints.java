@@ -9,6 +9,7 @@ public class PublicEndpoints {
             "/auth/login",
             "/auth/forgot-password",
             "/auth/forgot-password/reset",
-            "/auth/refresh-token"
+            "/auth/refresh-token",
+            "/static/**"
     };
 }

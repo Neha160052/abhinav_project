@@ -19,6 +19,7 @@ public class CustomerDetailsDTO {
     long contact;
     boolean isActive;
     boolean isLocked;
+    String profileImage;
 
     public CustomerDetailsDTO(Customer customer){
         String middleName = customer.getUser().getMiddleName();
