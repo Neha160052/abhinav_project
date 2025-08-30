@@ -2,6 +2,8 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
+import com.abhinav.abhinavProject.exception.AddressNotFoundException;
+import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
@@ -200,7 +202,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public void addCustomerAddress(AddressDTO addressDTO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findByEmail(principal.getUsername()).get();
+        User user = userRepository.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Address address = Address
                 .builder()
@@ -221,10 +224,10 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomerAddress(long addressId) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(() -> new RuntimeException("No User found"));
+                .orElseThrow(() -> new UserNotFoundException("No User found"));
 
         if(!addressRepository.existsByIdAndUser_Id(addressId, user.getId())) {
-            throw new RuntimeException("Invalid Address id provided.");
+            throw new AddressNotFoundException("Invalid Address id provided.");
         }
 
         addressRepository.deleteById(addressId);

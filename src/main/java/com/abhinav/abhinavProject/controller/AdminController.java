@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.controller;
 
+import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.service.UserService;
@@ -43,12 +44,14 @@ public class AdminController {
     }
 
     @PatchMapping("/user/activate")
-    public ResponseEntity<String> activateUser(@RequestParam long id) {
-        return ResponseEntity.ok(userService.activateUserAccount(id));
+    public ResponseEntity<ApiResponse> activateUser(@RequestParam long id) {
+        String response = userService.activateUserAccount(id);
+        return ResponseEntity.ok(new ApiResponse(response));
     }
 
     @PatchMapping("/user/deactivate")
-    public ResponseEntity<String> deactivateUser(@RequestParam long id) {
-        return ResponseEntity.ok(userService.deactivateUserAccount(id));
+    public ResponseEntity<ApiResponse> deactivateUser(@RequestParam long id) {
+        String response = userService.deactivateUserAccount(id);
+        return ResponseEntity.ok(new ApiResponse(response));
     }
 }

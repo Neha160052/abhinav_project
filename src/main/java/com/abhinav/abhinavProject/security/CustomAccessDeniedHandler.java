@@ -1,6 +1,6 @@
 package com.abhinav.abhinavProject.security;
 
-import com.abhinav.abhinavProject.exception.ExceptionResponse;
+import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,13 +24,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
 
-        ExceptionResponse exceptionResponse = new ExceptionResponse(
+        ApiResponse apiResponse = new ApiResponse(
                 HttpStatus.FORBIDDEN.value(),
                 accessDeniedException.getMessage(),
                 "User does not have required privileges to access this resource"
         );
 
-        response.getWriter().write(mapper.writeValueAsString(exceptionResponse));
+        response.getWriter().write(mapper.writeValueAsString(apiResponse));
     }
 }
 

@@ -4,6 +4,8 @@ import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.exception.AddressNotFoundException;
+import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
@@ -30,7 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String activateUserAccount(long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Invalid User id provided")
+                () -> new UserNotFoundException("Invalid User id provided")
         );
 
         if (user.isActive()) {
@@ -47,7 +49,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String deactivateUserAccount(long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Invalid User id provided")
+                () -> new UserNotFoundException("Invalid User id provided")
         );
 
         if (!user.isActive()) {
@@ -65,7 +67,7 @@ public class UserServiceImpl implements UserService {
     public void updateUserPassword(ResetPasswordCO resetPasswordCO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
         emailServiceImpl.sendPasswordUpdateMail(user);
     }
@@ -75,7 +77,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         Address address = addressRepository.findByIdAndUser_Id(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("No address found for the user by this id"));
+                .orElseThrow(() -> new AddressNotFoundException("No address found for the user by this id"));
 
         if (nonNull(addressPatchDTO.getCity()))
             address.setCity(addressPatchDTO.getCity());

@@ -4,6 +4,7 @@ import com.abhinav.abhinavProject.co.AddressPatchDTO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
+import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.Valid;
@@ -23,10 +24,10 @@ public class SellerController {
     SellerService sellerService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerNewSeller(@RequestBody @Valid SellerRegisterCO sellerRegisterCO) {
+    public ResponseEntity<ApiResponse> registerNewSeller(@RequestBody @Valid SellerRegisterCO sellerRegisterCO) {
         sellerService.registerSeller(sellerRegisterCO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("Seller Registered successfully"));
     }
 
     @GetMapping("/profile")
@@ -35,22 +36,22 @@ public class SellerController {
     }
 
     @PatchMapping("/profile")
-    public ResponseEntity<String> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
+    public ResponseEntity<ApiResponse> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
         sellerService.updateSellerDetails(sellerProfileUpdateCO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("Profile updated successfully"));
     }
 
     @PatchMapping("/update-password")
-    public ResponseEntity<String> updateSellerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
+    public ResponseEntity<ApiResponse> updateSellerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
         sellerService.updateSellerPassword(resetPasswordCO);
-        return ResponseEntity.ok("Password updated successfully");
+        return ResponseEntity.ok(new ApiResponse("Password updated successfully"));
     }
 
     @PatchMapping("/update-address")
-    public ResponseEntity<String> updateSellerAddress(@RequestParam long id,
+    public ResponseEntity<ApiResponse> updateSellerAddress(@RequestParam long id,
                                                       @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         sellerService.updateSellerAddress(id, addressPatchDTO);
-        return ResponseEntity.ok("Address updated successfully");
+        return ResponseEntity.ok(new ApiResponse("Address updated successfully"));
     }
 }

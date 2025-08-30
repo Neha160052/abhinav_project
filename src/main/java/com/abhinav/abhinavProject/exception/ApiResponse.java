@@ -5,13 +5,17 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExceptionResponse {
+public class ApiResponse {
     int status;
     String message;
     Object details;
+
+    public ApiResponse(String message) {
+        this.message = message;
+    }
 }

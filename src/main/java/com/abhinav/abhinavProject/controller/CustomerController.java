@@ -2,6 +2,7 @@ package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
+import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import jakarta.validation.Valid;
@@ -25,22 +26,22 @@ public class CustomerController {
     CustomerService customerService;
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> registerCustomer(@RequestPart("profileData") @Valid CustomerRegisterCO customerRegisterCO,
-                                                   @RequestPart(value = "profileImage", required = false)MultipartFile file) {
+    public ResponseEntity<ApiResponse> registerCustomer(@RequestPart("profileData") @Valid CustomerRegisterCO customerRegisterCO,
+                                                        @RequestPart(value = "profileImage", required = false) MultipartFile file) {
         customerService.registerCustomer(customerRegisterCO, file);
-        return ResponseEntity.ok("User Registered");
+        return ResponseEntity.ok(new ApiResponse("Customer Registered successfully"));
     }
 
     @GetMapping("/activate")
-    public ResponseEntity<String> activateCustomerAccount(@RequestParam String token) {
+    public ResponseEntity<ApiResponse> activateCustomerAccount(@RequestParam String token) {
         customerService.activateCustomerAccount(token);
-        return ResponseEntity.ok("Customer account has been activated!");
+        return ResponseEntity.ok(new ApiResponse("Customer account has been activated!"));
     }
 
     @GetMapping("/activate/resend")
-    public ResponseEntity<String> resendActivationCode(@RequestBody @Valid EmailRequestCO emailRequestCO) {
+    public ResponseEntity<ApiResponse> resendActivationCode(@RequestBody @Valid EmailRequestCO emailRequestCO) {
         customerService.resendActivationCode(emailRequestCO.getEmail());
-        return ResponseEntity.ok("New activation link has been sent to the registered email address!");
+        return ResponseEntity.ok(new ApiResponse("New activation link has been sent to the registered email address"));
     }
 
     @GetMapping("/profile")
@@ -54,29 +55,31 @@ public class CustomerController {
     }
 
     @PatchMapping("/profile")
-    public ResponseEntity<String> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
+    public ResponseEntity<ApiResponse> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
         customerService.updateCustomerDetails(customerProfileUpdateCO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Profile updated successfully");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse("Profile updated successfully"));
     }
 
     @PatchMapping("/update-password")
-    public ResponseEntity<String> updateCustomerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
+    public ResponseEntity<ApiResponse> updateCustomerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
         customerService.updateCustomerPassword(resetPasswordCO);
-        return ResponseEntity.ok("Password updated successfully");
+        return ResponseEntity.ok(new ApiResponse("Password updated successfully"));
     }
 
     @PatchMapping("/update-address")
-    public ResponseEntity<String> updateCustomerAddress(@RequestParam long id,
+    public ResponseEntity<ApiResponse> updateCustomerAddress(@RequestParam long id,
                                                         @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         customerService.updateCustomerAddress(id, addressPatchDTO);
-        return ResponseEntity.ok("Address updated successfully");
+        return ResponseEntity.ok(new ApiResponse("Address updated successfully"));
     }
 
     @PostMapping("/add-address")
-    public ResponseEntity<String> addCustomerAddress(@RequestBody @Valid AddressDTO addressDTO) {
+    public ResponseEntity<ApiResponse> addCustomerAddress(@RequestBody @Valid AddressDTO addressDTO) {
         customerService.addCustomerAddress(addressDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Address added successfully.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse("Address added successfully."));
     }
 
     @DeleteMapping("/delete-address")

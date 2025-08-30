@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.EmailRequestCO;
 import com.abhinav.abhinavProject.co.LoginRequestCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
+import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.AuthService;
 import com.abhinav.abhinavProject.vo.AuthTokenResponseVO;
 import jakarta.servlet.http.Cookie;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +43,7 @@ public class AuthController {
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
-                                .maxAge(Duration.ofHours(24)) // TODO put expiration times in a constant
+                                .maxAge(Duration.ofHours(24))
                                 .sameSite("Strict")
                                 .build()
                                 .toString()
@@ -57,7 +59,7 @@ public class AuthController {
                 .filter(c-> c.getName().equals("refreshToken"))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Refresh Token missing"));
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException("Refresh Token is missing"));
 
         String[] tokens = authService.refreshJwtTokens(refreshToken);
 
@@ -76,24 +78,24 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<String> logout() {
+    public ResponseEntity<ApiResponse> logout() {
         String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
 
         authService.logoutUser(accessToken);
-        return ResponseEntity.ok("User logged out successfully");
+        return ResponseEntity.ok(new ApiResponse("User logged out successfully"));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
+    public ResponseEntity<ApiResponse> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
         authService.sendResetPasswordLink(emailRequestCO.getEmail());
-        return ResponseEntity.ok("A reset password link has been sent to the email!");
+        return ResponseEntity.ok(new ApiResponse("A reset password link has been sent to the email!"));
     }
 
     @PostMapping("/forgot-password/reset")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
-                                                @RequestParam String token) {
+    public ResponseEntity<ApiResponse> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
+                                                     @RequestParam String token) {
         authService.resetUserPassword(resetPasswordCO, token);
-        return ResponseEntity.ok("Password had been updated successfully!");
+        return ResponseEntity.ok(new ApiResponse("Password had been updated successfully!"));
     }
 
 }

@@ -72,4 +72,12 @@ public class EmailServiceImpl {
                 "Hi " + user.getFirstName() + ",\nYour account password has been updated successfully."
         );
     }
+
+    public void accountLockedNotification(User user) {
+        sendMail(
+                user.getEmail(),
+                "Account Locked notification",
+                "Hi " + user.getFirstName() + ",\nYour account has been locked because 3 invalid password attempts were made."
+        );
+    }
 }

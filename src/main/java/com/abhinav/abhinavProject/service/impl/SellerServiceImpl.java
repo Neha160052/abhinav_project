@@ -5,13 +5,14 @@ import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.exception.PasswordMismatchException;
+import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.service.UserService;
-import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.ValidationException;
@@ -48,7 +49,7 @@ public class SellerServiceImpl implements SellerService {
         }
 
         if(!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new ValidationException("Password mismatch.");
+            throw new PasswordMismatchException("Password mismatch.");
         }
 
         Role sellerRole = roleRepository.findByAuthority("ROLE_SELLER");
@@ -97,14 +98,16 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public SellerDetailsDTO getSellerDetails() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
+        Seller seller = sellerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return new SellerDetailsDTO(seller);
     }
 
     @Override
     public void updateSellerDetails(SellerProfileUpdateCO sellerProfileUpdateCO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Seller seller = sellerRepository.findByUser_Email(principal.getUsername()).get();
+        Seller seller = sellerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not Found"));
         User sellerUser = seller.getUser();
 
         if(nonNull(sellerProfileUpdateCO.getFirstName()))
