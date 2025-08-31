@@ -1,11 +1,13 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.co.NewMetadataFieldCO;
 import com.abhinav.abhinavProject.entity.category.CategoryMetadataField;
 import com.abhinav.abhinavProject.repository.CategoryMetadataFieldRepository;
 import com.abhinav.abhinavProject.service.MetadataFieldService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.MetadataFieldDetailsVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
+import jakarta.validation.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,5 +30,17 @@ public class MetadataFieldServiceImpl implements MetadataFieldService {
                 fields.hasNext(),
                 fields.getContent()
         );
+    }
+
+    @Override
+    public MetadataFieldDetailsVO addNewField(NewMetadataFieldCO newMetadataFieldCO) {
+        if(metadataFieldRepository.existsByNameIgnoreCase(newMetadataFieldCO.getName())) {
+            throw new ValidationException(messageUtil.getMessage("metadatafield.name.exists"));
+        }
+
+        CategoryMetadataField metadataField = new CategoryMetadataField();
+        metadataField.setName(newMetadataFieldCO.getName());
+
+        return new MetadataFieldDetailsVO(metadataFieldRepository.save(metadataField));
     }
 }
