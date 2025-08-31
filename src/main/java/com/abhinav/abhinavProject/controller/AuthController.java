@@ -5,6 +5,7 @@ import com.abhinav.abhinavProject.co.LoginRequestCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.AuthService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.AuthTokenResponseVO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ import java.util.Optional;
 public class AuthController {
 
     AuthService authService;
+    MessageUtil messageUtil;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponseVO> login(@RequestBody @Valid LoginRequestCO loginRequestCO) {
@@ -59,7 +61,9 @@ public class AuthController {
                 .filter(c-> c.getName().equals("refreshToken"))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException("Refresh Token is missing"));
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException(
+                        messageUtil.getMessage("auth.refresh.token.missing"))
+                );
 
         String[] tokens = authService.refreshJwtTokens(refreshToken);
 
@@ -82,20 +86,20 @@ public class AuthController {
         String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
 
         authService.logoutUser(accessToken);
-        return ResponseEntity.ok(new ApiResponse("User logged out successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.logout.success")));
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
         authService.sendResetPasswordLink(emailRequestCO.getEmail());
-        return ResponseEntity.ok(new ApiResponse("A reset password link has been sent to the email!"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.password.reset.link")));
     }
 
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<ApiResponse> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
                                                      @RequestParam String token) {
         authService.resetUserPassword(resetPasswordCO, token);
-        return ResponseEntity.ok(new ApiResponse("Password had been updated successfully!"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.password.reset.success")));
     }
 
 }

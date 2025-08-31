@@ -6,6 +6,7 @@ import com.abhinav.abhinavProject.co.SellerProfileUpdateCO;
 import com.abhinav.abhinavProject.co.SellerRegisterCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.SellerService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,12 +23,13 @@ import org.springframework.web.bind.annotation.*;
 public class SellerController {
 
     SellerService sellerService;
+    MessageUtil messageUtil;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> registerNewSeller(@RequestBody @Valid SellerRegisterCO sellerRegisterCO) {
         sellerService.registerSeller(sellerRegisterCO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("Seller Registered successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(messageUtil.getMessage("seller.register.success")));
     }
 
     @GetMapping("/profile")
@@ -38,13 +40,13 @@ public class SellerController {
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
         sellerService.updateSellerDetails(sellerProfileUpdateCO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("Profile updated successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(messageUtil.getMessage("profile.updated")));
     }
 
     @PatchMapping("/update-password")
     public ResponseEntity<ApiResponse> updateSellerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
         sellerService.updateSellerPassword(resetPasswordCO);
-        return ResponseEntity.ok(new ApiResponse("Password updated successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("password.updated")));
     }
 
     @PatchMapping("/update-address")
@@ -52,6 +54,6 @@ public class SellerController {
                                                       @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         sellerService.updateSellerAddress(id, addressPatchDTO);
-        return ResponseEntity.ok(new ApiResponse("Address updated successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("address.updated")));
     }
 }

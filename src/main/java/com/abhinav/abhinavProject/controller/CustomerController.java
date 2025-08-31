@@ -4,6 +4,7 @@ import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -24,24 +25,25 @@ import java.util.Set;
 public class CustomerController {
 
     CustomerService customerService;
+    MessageUtil messageUtil;
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse> registerCustomer(@RequestPart("profileData") @Valid CustomerRegisterCO customerRegisterCO,
                                                         @RequestPart(value = "profileImage", required = false) MultipartFile file) {
         customerService.registerCustomer(customerRegisterCO, file);
-        return ResponseEntity.ok(new ApiResponse("Customer Registered successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("customer.register.success")));
     }
 
     @GetMapping("/activate")
     public ResponseEntity<ApiResponse> activateCustomerAccount(@RequestParam String token) {
         customerService.activateCustomerAccount(token);
-        return ResponseEntity.ok(new ApiResponse("Customer account has been activated!"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("customer.account.activated")));
     }
 
     @GetMapping("/activate/resend")
     public ResponseEntity<ApiResponse> resendActivationCode(@RequestBody @Valid EmailRequestCO emailRequestCO) {
         customerService.resendActivationCode(emailRequestCO.getEmail());
-        return ResponseEntity.ok(new ApiResponse("New activation link has been sent to the registered email address"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("customer.activation.resend")));
     }
 
     @GetMapping("/profile")
@@ -58,13 +60,13 @@ public class CustomerController {
     public ResponseEntity<ApiResponse> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
         customerService.updateCustomerDetails(customerProfileUpdateCO);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse("Profile updated successfully"));
+                .body(new ApiResponse(messageUtil.getMessage("profile.updated")));
     }
 
     @PatchMapping("/update-password")
     public ResponseEntity<ApiResponse> updateCustomerPassword(@RequestBody @Valid ResetPasswordCO resetPasswordCO) {
         customerService.updateCustomerPassword(resetPasswordCO);
-        return ResponseEntity.ok(new ApiResponse("Password updated successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("password.updated")));
     }
 
     @PatchMapping("/update-address")
@@ -72,19 +74,19 @@ public class CustomerController {
                                                         @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         customerService.updateCustomerAddress(id, addressPatchDTO);
-        return ResponseEntity.ok(new ApiResponse("Address updated successfully"));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("address.updated")));
     }
 
     @PostMapping("/add-address")
     public ResponseEntity<ApiResponse> addCustomerAddress(@RequestBody @Valid AddressDTO addressDTO) {
         customerService.addCustomerAddress(addressDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse("Address added successfully."));
+                .body(new ApiResponse(messageUtil.getMessage("customer.address.added")));
     }
 
     @DeleteMapping("/delete-address")
-    public ResponseEntity<String> deleteCustomerAddress(@RequestParam("id") long addressId) {
+    public ResponseEntity<ApiResponse> deleteCustomerAddress(@RequestParam("id") long addressId) {
         customerService.deleteCustomerAddress(addressId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("customer.address.deleted")));
     }
 }
