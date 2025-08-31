@@ -1,16 +1,16 @@
 package com.abhinav.abhinavProject.entity.category;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.abhinav.abhinavProject.entity.AuditData;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -20,5 +20,9 @@ public class CategoryMetadataField {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
+    @Column(unique = true)
     String name;
+
+    @Embedded
+    AuditData auditData = new AuditData();
 }
