@@ -3,7 +3,9 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.EmailRequestCO;
 import com.abhinav.abhinavProject.co.LoginRequestCO;
 import com.abhinav.abhinavProject.co.ResetPasswordCO;
-import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.exception.ApiResponse;
+import com.abhinav.abhinavProject.service.AuthService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.AuthTokenResponseVO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,11 +32,12 @@ import java.util.Optional;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AuthController {
 
-    UserService userService;
+    AuthService authService;
+    MessageUtil messageUtil;
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponseVO> login(@RequestBody @Valid LoginRequestCO loginRequestCO) {
-        String[] tokens = userService.loginUser(loginRequestCO);
+        String[] tokens = authService.loginUser(loginRequestCO);
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.SET_COOKIE,
@@ -41,7 +45,7 @@ public class AuthController {
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
-                                .maxAge(Duration.ofHours(24)) // TODO put expiration times in a constant
+                                .maxAge(Duration.ofHours(24))
                                 .sameSite("Strict")
                                 .build()
                                 .toString()
@@ -57,9 +61,11 @@ public class AuthController {
                 .filter(c-> c.getName().equals("refreshToken"))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Refresh Token missing"));
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException(
+                        messageUtil.getMessage("auth.refresh.token.missing"))
+                );
 
-        String[] tokens = userService.refreshJwtTokens(refreshToken);
+        String[] tokens = authService.refreshJwtTokens(refreshToken);
 
         return ResponseEntity
                 .ok()
@@ -76,24 +82,24 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<String> logout() {
+    public ResponseEntity<ApiResponse> logout() {
         String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
 
-        userService.logoutUser(accessToken);
-        return ResponseEntity.ok("User logged out successfully");
+        authService.logoutUser(accessToken);
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.logout.success")));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
-        userService.sendResetPasswordLink(emailRequestCO.getEmail());
-        return ResponseEntity.ok("A reset password link has been sent to the email!");
+    public ResponseEntity<ApiResponse> forgotPasswordRequest(@Valid @RequestBody EmailRequestCO emailRequestCO) {
+        authService.sendResetPasswordLink(emailRequestCO.getEmail());
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.password.reset.link")));
     }
 
     @PostMapping("/forgot-password/reset")
-    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
-                                                @RequestParam String token) {
-        userService.resetUserPassword(resetPasswordCO, token);
-        return ResponseEntity.ok("Password had been updated successfully!");
+    public ResponseEntity<ApiResponse> resetPassword(@Valid @RequestBody ResetPasswordCO resetPasswordCO,
+                                                     @RequestParam String token) {
+        authService.resetUserPassword(resetPasswordCO, token);
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("auth.password.reset.success")));
     }
 
 }

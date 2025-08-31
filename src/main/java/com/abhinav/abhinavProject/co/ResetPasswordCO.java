@@ -14,15 +14,16 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ResetPasswordCO {
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, max = 15, message = "Password must be between 8 and 15 characters")
+    @NotBlank(message = "{password.required}")
+    @Size(min = 8, max = 15, message = "{password.size}")
     @Pattern(
             regexp = Regex.PASSWORD,
-            message = "Password must contain at least 1 lowercase, 1 uppercase, 1 number, and 1 special character"
+            message = "{password.pattern}"
     )
     String password;
 
-    @NotBlank(message = "Confirm Password is required")
+    @NotBlank(message = "{user.confirmpassword.required}")
+    @Size(min = 8, max = 15, message = "{user.confirmpassword.size}")
     String confirmPassword;
 
 }

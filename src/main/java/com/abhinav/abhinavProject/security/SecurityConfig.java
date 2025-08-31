@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.security;
 
+import com.abhinav.abhinavProject.constant.PublicEndpoints;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.service.impl.EmailServiceImpl;
 import com.abhinav.abhinavProject.service.impl.UserDetailsServiceImpl;
@@ -30,24 +31,34 @@ public class SecurityConfig {
     JwtSecurityFilter jwtSecurityFilter;
 
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(
+            HttpSecurity httpSecurity,
+            JwtAuthEntryPoint jwtAuthEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler
+    ) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(requests ->
-                    requests.requestMatchers("/customer/register", "/customer/activate").permitAll()
-                            .requestMatchers("/seller/register").permitAll()
-                            .requestMatchers(
-                                    "/auth/login",
-                                    "/auth/forgot-password",
-                                    "/api/auth/forgot-password/reset",
-                                    "/api/auth/refresh-token"
-                            ).permitAll()
-                            .anyRequest().authenticated()
+                        requests.requestMatchers(PublicEndpoints.PUBLIC_ENDPOINTS).permitAll()
+                                .requestMatchers(
+                                        "/admin/**"
+                                ).hasRole("ADMIN")
+                                .requestMatchers(
+                                        "/customer/**"
+                                ).hasRole("CUSTOMER")
+                                .requestMatchers(
+                                        "/seller/**"
+                                ).hasRole("SELLER")
+                                .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

@@ -4,26 +4,28 @@ import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 @EnableAsync
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AbhinavProjectApplication  implements CommandLineRunner {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-
-    public AbhinavProjectApplication(UserRepository userRepository, RoleRepository roleRepository) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-    }
+    UserRepository userRepository;
+    RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
 
     public static void main(String[] args) {
         SpringApplication.run(AbhinavProjectApplication.class, args);
@@ -40,9 +42,10 @@ public class AbhinavProjectApplication  implements CommandLineRunner {
                     User newAdmin = new User();
                     newAdmin.setFirstName("Admin");
                     newAdmin.setLastName("Istrator");
-                    newAdmin.setPassword("admin@123");
+                    newAdmin.setPassword(passwordEncoder.encode("Admin@1234"));
                     newAdmin.setEmail("admin@mail.com");
                     newAdmin.setRole(adminRole);
+                    newAdmin.setActive(true);
 
                     userRepository.save(newAdmin);
                 }

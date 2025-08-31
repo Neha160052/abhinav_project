@@ -13,7 +13,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -52,7 +51,7 @@ public class CustomDaoAuthenticationProvider extends DaoAuthenticationProvider {
                         if (user.getInvalidAttemptCount() >= 3) {
                             user.setLocked(true);
                             userRepository.save(user);
-//                            emailService.accountLockedNotification(new AccountLockedDto(userDetails.getUsername(), u.getFirstName()));
+                            emailService.accountLockedNotification(user);
                             throw new LockedException("User has been locked, exceeded invalid password count.");
                         }
                         userRepository.save(user);
