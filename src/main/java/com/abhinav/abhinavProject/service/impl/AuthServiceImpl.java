@@ -12,6 +12,7 @@ import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.AuthService;
 import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.utils.JwtService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     JwtService jwtService;
     BlacklistTokensRepository blacklistTokensRepository;
     AuthUtils authUtils;
+    MessageUtil messageUtil;
 
     public String[] loginUser(LoginRequestCO loginRequestCO) {
         Authentication authentication = authenticationManager.authenticate(
@@ -75,10 +77,10 @@ public class AuthServiceImpl implements AuthService {
 
     public void sendResetPasswordLink(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Email does not exist"));
+                .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notfound")));
 
         if (!user.isActive()) {
-            throw new AccountInactiveException("Account not activated. Please activate before resetting password.");
+            throw new AccountInactiveException("Account not activated");
         }
 
         if (user.getPasswordResetToken() != null) {
@@ -95,14 +97,14 @@ public class AuthServiceImpl implements AuthService {
     public void resetUserPassword(ResetPasswordCO resetPasswordCO, String token) {
 
         if (!resetPasswordCO.getPassword().equals(resetPasswordCO.getConfirmPassword())) {
-            throw new PasswordMismatchException("Password mismatch. Please check password and confirm password.");
+            throw new PasswordMismatchException("Password mismatch");
         }
 
 
         User user = userRepository.findByPasswordResetToken_Token(token);
 
         if (user == null) {
-            throw new InvalidTokenException("Invalid token provided");
+            throw new InvalidTokenException("Invalid password reset token");
         }
 
         if (user.getPasswordResetToken()
@@ -120,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
     public String[] refreshJwtTokens(String refreshToken) {
         // Check if refresh token is expired
         if (jwtService.isTokenExpired(refreshToken)) {
-            throw new TokenExpiredException("Refresh Token is Expired");
+            throw new TokenExpiredException("Refresh Token Expired");
         }
 
         // extract refresh token id and its expiry

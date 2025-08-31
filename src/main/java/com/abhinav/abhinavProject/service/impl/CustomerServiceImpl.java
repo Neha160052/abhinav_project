@@ -2,8 +2,7 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
-import com.abhinav.abhinavProject.exception.AddressNotFoundException;
-import com.abhinav.abhinavProject.exception.UserNotFoundException;
+import com.abhinav.abhinavProject.exception.*;
 import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
@@ -12,6 +11,7 @@ import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
@@ -48,6 +48,7 @@ public class CustomerServiceImpl implements CustomerService {
     UserService userService;
     AddressRepository addressRepository;
     ImageService imageService;
+    MessageUtil messageUtil;
 
     public void registerCustomer(CustomerRegisterCO registerCO, MultipartFile file) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
@@ -107,11 +108,11 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findByActivationToken_Token(token);
 
         if (customer == null) {
-            throw new RuntimeException("Invalid activation token provided");
+            throw new InvalidTokenException("Invalid activation token provided");
         }
 
         if (customer.getUser().isActive()) {
-            throw new RuntimeException("Customer account is already activated");
+            throw new AccountActiveException("Customer account is already activated");
         }
 
         if (customer.getActivationToken()
@@ -119,7 +120,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .isBefore(LocalDateTime.now())
         ) {
             generateNewActivationTokenAndSendEmail(customer);
-            throw new RuntimeException("Activation code expired. New activation link has been emailed.");
+            throw new TokenExpiredException("Activation code expired. New activation link has been emailed.");
         }
 
         User customerUser = customer.getUser();
@@ -132,10 +133,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     public void resendActivationCode(String email) {
         Customer existingCustomer = customerRepository.findByUser_Email(email)
-                .orElseThrow(() -> new RuntimeException("Customer with email " + email + " does not exist"));
+                .orElseThrow(() -> new UserNotFoundException("Customer with email " + email + " does not exist"));
 
         if (existingCustomer.getUser().isActive()) {
-            throw new RuntimeException("Customer account is already activated");
+            throw new AccountActiveException("Customer account is already activated");
         }
         generateNewActivationTokenAndSendEmail(existingCustomer);
     }
@@ -157,7 +158,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDetailsDTO getCustomerDetails() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = customerRepository.findByUser_Email(principal.getUsername())
-                .orElseThrow(()->new UsernameNotFoundException("Could not find customer details"));
+                .orElseThrow(()->new UserNotFoundException("Could not find customer details"));
         return setProfileImage(new CustomerDetailsDTO(customer));
     }
 
@@ -165,14 +166,15 @@ public class CustomerServiceImpl implements CustomerService {
     public Set<Address> getCustomerAddresses() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(()-> new RuntimeException("User not Found"));
+                .orElseThrow(()-> new UserNotFoundException("User not Found"));
         return user.getAddress();
     }
 
     @Override
     public void updateCustomerDetails(CustomerProfileUpdateCO customerProfileUpdateCO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Customer customer = customerRepository.findByUser_Email(principal.getUsername()).get();
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(()->new UserNotFoundException("User not found"));
         User customerUser = customer.getUser();
 
         if(nonNull(customerProfileUpdateCO.getFirstName()))

@@ -11,6 +11,7 @@ import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.utils.AuthUtils;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +29,7 @@ public class UserServiceImpl implements UserService {
     EmailServiceImpl emailServiceImpl;
     AddressRepository addressRepository;
     AuthUtils authUtils;
+    MessageUtil messageUtil;
 
     @Override
     public String activateUserAccount(long id) {
@@ -36,14 +38,14 @@ public class UserServiceImpl implements UserService {
         );
 
         if (user.isActive()) {
-            return "User is already activated.";
+            return messageUtil.getMessage("account.active");
         }
 
         user.setActive(true);
         userRepository.save(user);
         emailServiceImpl.sendAdminActivationMail(user);
 
-        return "User account has been activated successfully.";
+        return messageUtil.getMessage("account.activated.success");
     }
 
     @Override
@@ -53,14 +55,14 @@ public class UserServiceImpl implements UserService {
         );
 
         if (!user.isActive()) {
-            return "User is already deactivated.";
+            return messageUtil.getMessage("account.isInactive");
         }
 
         user.setActive(false);
         userRepository.save(user);
         emailServiceImpl.sendAdminDeactivationMail(user);
 
-        return "User account has been deactivated successfully.";
+        return messageUtil.getMessage("account.deactivated.success");
     }
 
     @Override
@@ -77,7 +79,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         Address address = addressRepository.findByIdAndUser_Id(id, user.getId())
-                .orElseThrow(() -> new AddressNotFoundException("No address found for the user by this id"));
+                .orElseThrow(() -> new AddressNotFoundException("Address not found"));
 
         if (nonNull(addressPatchDTO.getCity()))
             address.setCity(addressPatchDTO.getCity());

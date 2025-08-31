@@ -72,6 +72,27 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("token.invalid"))
+        );
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse> handleExpiredToken(TokenExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), messageUtil.getMessage("token.expired"))
+        );
+    }
+
+    @ExceptionHandler(AccountActiveException.class)
+    public ResponseEntity<ApiResponse> handleAccountActive(AccountActiveException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), messageUtil.getMessage("account.active"))
+        );
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
