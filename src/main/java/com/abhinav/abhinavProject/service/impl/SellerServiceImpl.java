@@ -67,7 +67,7 @@ public class SellerServiceImpl implements SellerService {
                 .state(companyAddress.getState())
                 .country(companyAddress.getCountry())
                 .addressLine(companyAddress.getAddressLine())
-                .zipCode(companyAddress.getZipCode())
+                .zipCode(Integer.parseInt(companyAddress.getZipCode()))
                 .label(companyAddress.getLabel())
                 .build();
 

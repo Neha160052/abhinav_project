@@ -12,36 +12,36 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SellerProfileUpdateCO {
-    @Size(min = 3, max = 20, message = "First name should be between 3 and 50 characters")
+    @Size(min = 3, max = 20, message = "{user.firstname.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "First name cannot be blank and only contain alphabets"
+            message = "{user.firstname.pattern}"
     )
     String firstName;
 
-    @Size(min = 3, max = 20, message = "Middle name should be between 3 and 20 characters")
+    @Size(min = 3, max = 20, message = "{user.middlename.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "Middle name cannot be blank and only contain alphabets"
+            message = "{user.middlename.pattern}"
     )
     String middleName;
 
-    @Size(min = 3, max = 20, message = "Last name should be between 3 and 20 characters")
+    @Size(min = 3, max = 20, message = "{user.lastname.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "Last name cannot be blank and only contain alphabets"
+            message = "{user.lastname.pattern}"
     )
     String lastName;
 
     @Pattern(
             regexp = Regex.CONTACT,
-            message = "Phone number must be exactly 10 digits"
+            message = "{user.phone.pattern}"
     )
     String companyContact;
 
-    @Pattern(regexp = Regex.GST, message = "Invalid GST format provided")
+    @Pattern(regexp = Regex.GST, message = "{seller.gst.pattern}")
     String gst;
 
-    @Size(min = 3, max = 20, message = "Name should be between 3 and 50 characters")
+    @Size(min = 3, max = 20, message = "{seller.companyname.size}")
     String companyName;
 }

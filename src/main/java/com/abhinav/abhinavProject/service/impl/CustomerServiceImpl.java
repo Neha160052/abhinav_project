@@ -212,7 +212,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .state(addressDTO.getState())
                 .country(addressDTO.getCountry())
                 .addressLine(addressDTO.getAddressLine())
-                .zipCode(addressDTO.getZipCode())
+                .zipCode(Integer.parseInt(addressDTO.getZipCode()))
                 .label(addressDTO.getLabel())
                 .build();
 

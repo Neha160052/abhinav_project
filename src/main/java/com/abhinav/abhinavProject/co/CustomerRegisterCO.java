@@ -2,7 +2,10 @@ package com.abhinav.abhinavProject.co;
 
 
 import com.abhinav.abhinavProject.constant.Regex;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,50 +16,50 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerRegisterCO {
 
-    @NotBlank(message = "First name is required")
-    @Size(min = 3, max = 20, message = "First name should be between 3 and 50 characters")
+    @NotBlank(message = "{user.firstname.required}")
+    @Size(min = 3, max = 20, message = "{user.firstname.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "First name cannot be blank and only contain alphabets"
+            message = "{user.firstname.pattern}"
     )
     String firstName;
 
-    @Size(min = 3, max = 20, message = "Middle name should be between 3 and 20 characters")
+    @Size(min = 3, max = 20, message = "{user.middlename.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "Middle name cannot be blank and only contain alphabets"
+            message = "{user.middlename.pattern}"
     )
     String middleName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(min = 3, max = 20, message = "Last name should be between 3 and 20 characters")
+    @NotBlank(message = "{user.lastname.required}")
+    @Size(min = 3, max = 20, message = "{user.lastname.size}")
     @Pattern(
             regexp = Regex.NAME,
-            message = "Last name cannot be blank and only contain alphabets"
+            message = "{user.lastname.pattern}"
     )
     String lastName;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "{email.required}")
+    @Email(message = "{email.invalid}")
     String email;
 
-    @NotBlank(message = "Phone number is required")
+    @NotBlank(message = "{user.phone.required}")
     @Pattern(
             regexp = Regex.CONTACT,
-            message = "Phone number must be exactly 10 digits"
+            message = "{user.phone.pattern}"
     )
     String phoneNumber;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, max = 15, message = "Password must be between 8 and 15 characters")
+    @NotBlank(message = "{password.required}")
+    @Size(min = 8, max = 15, message = "{password.size}")
     @Pattern(
             regexp = Regex.PASSWORD,
-            message = "Password must contain at least 1 lowercase, 1 uppercase, 1 number, and 1 special character"
+            message = "{password.pattern}"
     )
     String password;
 
-    @NotBlank(message = "Confirm Password is required")
-    @Size(min = 8, max = 15, message = "Confirm Password must be between 8 and 15 characters")
+    @NotBlank(message = "{user.confirmpassword.required}")
+    @Size(min = 8, max = 15, message = "{user.confirmpassword.size}")
     String confirmPassword;
 
 }

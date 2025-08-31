@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
         if (nonNull(addressPatchDTO.getAddressLine()))
             address.setAddressLine(addressPatchDTO.getAddressLine());
         if (nonNull(addressPatchDTO.getZipCode()))
-            address.setZipCode(addressPatchDTO.getZipCode());
+            address.setZipCode(Integer.parseInt(addressPatchDTO.getZipCode()));
         if (nonNull(addressPatchDTO.getLabel()))
             address.setLabel(addressPatchDTO.getLabel());
 
