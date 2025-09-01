@@ -10,10 +10,13 @@ import com.abhinav.abhinavProject.repository.ProductRepository;
 import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 import com.abhinav.abhinavProject.vo.CategoryFieldAndValuesVO;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,16 +64,33 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDetailsVO getCategoryDetails(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+        return buildCategoryDetailsVO(category);
+    }
 
+    @Override
+    public PageResponseVO<List<CategoryDetailsVO>> getAllCategories(Pageable pageable, String query) {
+        Page<Category> resultSet = categoryRepository.findByNameContainingIgnoreCase(query, pageable);
+
+        List<CategoryDetailsVO> categories = resultSet.getContent().stream().map(this::buildCategoryDetailsVO).toList();
+
+        return new PageResponseVO<>(
+                resultSet.getNumber(),
+                resultSet.getSize(),
+                resultSet.hasNext(),
+                categories
+        );
+    }
+
+    private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
         // get list of ancestors
         List<CategoryDetailsVO> parentCategories = getParentCategories(category);
 
         // get list of children
-        List<Category> children = categoryRepository.findByParentCategory_Id(id);
+        List<Category> children = categoryRepository.findByParentCategory_Id(category.getId());
         List<CategoryDetailsVO> childCategories = children.stream().map(CategoryDetailsVO::new).toList();
 
         // get list of metadata fields and values
-        List<CategoryMetadataFieldValues> categoryValues = fieldValuesRepository.findByCategory_Id(id);
+        List<CategoryMetadataFieldValues> categoryValues = fieldValuesRepository.findByCategory_Id(category.getId());
 
         List<CategoryFieldAndValuesVO> metadataVOs = new ArrayList<>();
         for (CategoryMetadataFieldValues metadata : categoryValues) {

@@ -5,14 +5,19 @@ import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/category")
@@ -23,6 +28,15 @@ public class AdminCategoryController {
 
     CategoryService categoryService;
     MessageUtil messageUtil;
+
+    @GetMapping()
+    public ResponseEntity<PageResponseVO<List<CategoryDetailsVO>>> getAllCategories(
+            @PageableDefault(sort = "id") Pageable pageable,
+            @RequestParam(defaultValue = "") String query
+    ) {
+        PageResponseVO<List<CategoryDetailsVO>> allCategories = categoryService.getAllCategories(pageable, query.trim());
+        return ResponseEntity.ok(allCategories);
+    }
 
     @PostMapping()
     public ResponseEntity<ApiResponse> addNewCategory(@RequestBody @Valid NewCategoryCO newCategoryCO) {
