@@ -5,4 +5,6 @@ import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 
 public interface CategoryService {
     CategoryDetailsVO addNewCategory(NewCategoryCO newCategoryCO);
+
+    CategoryDetailsVO getCategoryDetails(Long id);
 }
