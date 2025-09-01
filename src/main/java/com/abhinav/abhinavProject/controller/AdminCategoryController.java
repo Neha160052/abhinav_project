@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.NewCategoryCO;
+import com.abhinav.abhinavProject.co.UpdateCategoryCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
@@ -50,5 +51,11 @@ public class AdminCategoryController {
     public ResponseEntity<CategoryDetailsVO> getCategoryDetails(@PathVariable Long id) {
         CategoryDetailsVO categoryDetails = categoryService.getCategoryDetails(id);
         return ResponseEntity.ok(categoryDetails);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateCategory(@PathVariable Long id, @RequestBody @Valid UpdateCategoryCO updateCategoryCO) {
+        categoryService.updateCategory(id, updateCategoryCO);
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("category.update.success")));
     }
 }

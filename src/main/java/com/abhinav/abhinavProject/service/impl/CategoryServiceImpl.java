@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.NewCategoryCO;
+import com.abhinav.abhinavProject.co.UpdateCategoryCO;
 import com.abhinav.abhinavProject.entity.category.Category;
 import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
@@ -79,6 +80,22 @@ public class CategoryServiceImpl implements CategoryService {
                 resultSet.hasNext(),
                 categories
         );
+    }
+
+    @Override
+    public void updateCategory(Long id, UpdateCategoryCO updateCategoryCO) {
+        Category thisCategory = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+
+        Category parentCategory = thisCategory.getParentCategory();
+
+        validateSiblingNameUniqueness(updateCategoryCO.getCategoryName(), parentCategory);
+
+        if (parentCategory != null) {
+            validateNameUniquenessAlongPath(updateCategoryCO.getCategoryName(), parentCategory);
+        }
+        thisCategory.setName(updateCategoryCO.getCategoryName());
+        categoryRepository.save(thisCategory);
     }
 
     private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
