@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.exception;
 
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     MessageUtil messageUtil;
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse> handleValidation(ValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Validation Excpetion",ex.getMessage())
+        );
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> validationExceptionHandler(MethodArgumentNotValidException e) {
@@ -57,6 +65,12 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleCatNotFound(CategoryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("category.notFound"))
+        );
+    }
 
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<ApiResponse> handleAccountInactive(AccountInactiveException ex) {
