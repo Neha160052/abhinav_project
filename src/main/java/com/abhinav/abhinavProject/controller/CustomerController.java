@@ -4,7 +4,9 @@ import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CustomerService;
+import com.abhinav.abhinavProject.service.impl.CategoryServiceImpl;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -25,6 +27,7 @@ import java.util.Set;
 public class CustomerController {
 
     CustomerService customerService;
+    CategoryServiceImpl categoryService;
     MessageUtil messageUtil;
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -88,5 +91,10 @@ public class CustomerController {
     public ResponseEntity<ApiResponse> deleteCustomerAddress(@RequestParam("id") long addressId) {
         customerService.deleteCustomerAddress(addressId);
         return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("customer.address.deleted")));
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity<CategoryDetailsVO> getAllCustomerCategories(@RequestParam(name = "id", required = false) Long id) {
+        return ResponseEntity.ok(categoryService.getAllCustomerCategories(id));
     }
 }

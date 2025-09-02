@@ -186,6 +186,24 @@ public class CategoryServiceImpl implements CategoryService {
         );
     }
 
+    @Override
+    public CategoryDetailsVO getAllCustomerCategories(Long id) {
+        List<Category> categories;
+        if (id == null) {
+            categories = categoryRepository.findByParentCategoryIsNull();
+        } else {
+            if (!categoryRepository.existsById(id)) {
+                throw new CategoryNotFoundException("Category with ID " + id + " not found.");
+            }
+            categories = categoryRepository.findByParentCategory_Id(id);
+        }
+        CategoryDetailsVO response = new CategoryDetailsVO();
+        response.setChildrenCategories(categories.stream().map(CategoryDetailsVO::new).toList());
+
+        return response;
+    }
+
+
     private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
         // get list of ancestors
         List<CategoryDetailsVO> parentCategories = getParentCategories(category);

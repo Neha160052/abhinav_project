@@ -21,4 +21,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @NativeQuery("select * from category where id NOT IN (select distinct parent_category_id from category where parent_category_id is not null )")
     Page<Category> findLeafCategories(Pageable pageable);
+
+    List<Category> findByParentCategoryIsNull();
 }
