@@ -25,9 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -136,6 +134,34 @@ public class CategoryServiceImpl implements CategoryService {
             newFieldValue.setValuesList(fieldValuesCO.getValues());
 
             fieldValuesRepository.save(newFieldValue);
+        }
+    }
+
+    @Override
+    public void updateCategoryMetadataField(CategoryMetadataCO categoryMetadataCO) {
+        Category category = categoryRepository.findById(categoryMetadataCO.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryMetadataCO.getCategoryId() + " not found."));
+
+        for (MetadataFieldValuesCO fieldValuesCO : categoryMetadataCO.getMetadataFieldValues()) {
+            categoryMetadataFieldRepository.findById(fieldValuesCO.getMetadataFieldId())
+                    .orElseThrow(() -> new MetadataFieldNotFoundException("Field not found with id: " + fieldValuesCO.getMetadataFieldId()));
+
+            CategoryMetadataFieldValues association = fieldValuesRepository
+                    .findByCategory_IdAndCategoryMetadataField_Id(category.getId(), fieldValuesCO.getMetadataFieldId())
+                    .orElseThrow(() -> new ValidationException("Metadata field ID " + fieldValuesCO.getMetadataFieldId() + " is not associated with category ID " + category.getId()));
+
+            if (fieldValuesCO.getValues() == null || fieldValuesCO.getValues().isEmpty()) {
+                throw new ValidationException("Values list for metadata field ID " + fieldValuesCO.getMetadataFieldId() + " cannot be null or empty.");
+            }
+
+            Set<String> existingValues = association.getValuesList();
+            Set<String> combinedValues = new HashSet<>(existingValues);
+            combinedValues.addAll(fieldValuesCO.getValues());
+
+            if (combinedValues.size() > existingValues.size()) {
+                association.setValuesList(combinedValues);
+                fieldValuesRepository.save(association);
+            }
         }
     }
 

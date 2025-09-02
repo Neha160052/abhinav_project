@@ -65,4 +65,10 @@ public class AdminCategoryController {
         categoryService.addCategoryMetadataField(addCO);
         return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("category.metadata.added.success")));
     }
+
+    @PutMapping("/metadata")
+    public ResponseEntity<ApiResponse> updateCategoryMetadata(@RequestBody @Valid CategoryMetadataCO categoryMetadataCO) {
+        categoryService.updateCategoryMetadataField(categoryMetadataCO);
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("category.metadata.updated.success")));
+    }
 }

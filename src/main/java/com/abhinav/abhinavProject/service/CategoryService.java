@@ -20,4 +20,6 @@ public interface CategoryService {
     void updateCategory(Long id, UpdateCategoryCO updateCategoryCO);
 
     void addCategoryMetadataField(CategoryMetadataCO addCategoryMetadataFieldCO);
+
+    void updateCategoryMetadataField(CategoryMetadataCO categoryMetadataCO);
 }
