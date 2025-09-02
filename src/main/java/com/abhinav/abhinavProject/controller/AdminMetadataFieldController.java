@@ -7,7 +7,9 @@ import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.MetadataFieldDetailsVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/category")
 @RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AdminMetadataFieldController {
 
     MetadataFieldService metadataFieldService;

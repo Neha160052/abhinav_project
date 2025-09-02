@@ -20,7 +20,7 @@ public class CategoryDetailsVO {
     String name;
     List<CategoryDetailsVO> parentCategoryPath;
     List<CategoryDetailsVO> childrenCategories;
-    List<CategoryFieldAndValuesVO> fieldAndValues;
+    List<CategoryMetadataFieldAndValuesVO> fieldAndValues;
 
     public CategoryDetailsVO(Category category) {
         this.id = category.getId();

@@ -8,6 +8,9 @@ import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.MetadataFieldDetailsVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class MetadataFieldServiceImpl implements MetadataFieldService {
 
     CategoryMetadataFieldRepository metadataFieldRepository;

@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.controller;
 
+import com.abhinav.abhinavProject.co.CategoryMetadataCO;
 import com.abhinav.abhinavProject.co.NewCategoryCO;
 import com.abhinav.abhinavProject.co.UpdateCategoryCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
@@ -43,7 +44,7 @@ public class AdminCategoryController {
     public ResponseEntity<ApiResponse> addNewCategory(@RequestBody @Valid NewCategoryCO newCategoryCO) {
         CategoryDetailsVO newCategory = categoryService.addNewCategory(newCategoryCO);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ApiResponse(HttpStatus.CREATED.value(),messageUtil.getMessage("category.added.success"), newCategory)
+                new ApiResponse(HttpStatus.CREATED.value(), messageUtil.getMessage("category.added.success"), newCategory)
         );
     }
 
@@ -57,5 +58,11 @@ public class AdminCategoryController {
     public ResponseEntity<ApiResponse> updateCategory(@PathVariable Long id, @RequestBody @Valid UpdateCategoryCO updateCategoryCO) {
         categoryService.updateCategory(id, updateCategoryCO);
         return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("category.update.success")));
+    }
+
+    @PostMapping("/metadata")
+    public ResponseEntity<ApiResponse> addCategoryMetadataField(@RequestBody @Valid CategoryMetadataCO addCO) {
+        categoryService.addCategoryMetadataField(addCO);
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("category.metadata.added.success")));
     }
 }

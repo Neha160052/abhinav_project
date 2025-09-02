@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,7 +31,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ApiResponse> handleValidation(ValidationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Validation Excpetion",ex.getMessage())
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Validation Exception",ex.getMessage())
         );
     }
 
@@ -131,9 +132,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), messageUtil.getMessage("json.parse.error"), ex.getMessage())
+        );
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> respond(RuntimeException e) {
         log.error(e.getMessage());
+        log.error(String.valueOf(e.getClass()));
         return ResponseEntity
                 .internalServerError()
                 .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), messageUtil.getMessage("server.error"))
