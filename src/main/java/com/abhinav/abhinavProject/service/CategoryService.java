@@ -22,4 +22,6 @@ public interface CategoryService {
     void addCategoryMetadataField(CategoryMetadataCO addCategoryMetadataFieldCO);
 
     void updateCategoryMetadataField(CategoryMetadataCO categoryMetadataCO);
+
+    PageResponseVO<List<CategoryDetailsVO>> getAllSellerCategories(Pageable pageable);
 }

@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -124,6 +125,12 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
+                new ApiResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), messageUtil.getMessage("method.unsupported"), ex.getMessage())
+        );
+    }
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ApiResponse> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
         String message = messageUtil.getMessage("media.unsupported") + ex.getSupportedMediaTypes();

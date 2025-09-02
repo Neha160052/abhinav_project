@@ -165,6 +165,27 @@ public class CategoryServiceImpl implements CategoryService {
         }
     }
 
+    @Override
+    public PageResponseVO<List<CategoryDetailsVO>> getAllSellerCategories(Pageable pageable) {
+        Page<Category> leafCategoriesPage = categoryRepository.findLeafCategories(pageable);
+
+        List<CategoryDetailsVO> categories = leafCategoriesPage.getContent()
+                .stream()
+                .map(category -> {
+                    CategoryDetailsVO vo = buildCategoryDetailsVO(category);
+                    vo.setChildrenCategories(null);
+                    return vo;
+                })
+                .toList();
+
+        return new PageResponseVO<>(
+                leafCategoriesPage.getNumber(),
+                leafCategoriesPage.getSize(),
+                leafCategoriesPage.hasNext(),
+                categories
+        );
+    }
+
     private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
         // get list of ancestors
         List<CategoryDetailsVO> parentCategories = getParentCategories(category);
@@ -221,6 +242,6 @@ public class CategoryServiceImpl implements CategoryService {
             parents.add(new CategoryDetailsVO(current));
             current = current.getParentCategory();
         }
-        return parents;
+        return parents.reversed();
     }
 }
