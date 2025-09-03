@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.AddProductCO;
+import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.entity.category.Category;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.user.Seller;
@@ -89,9 +90,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found."));
 
-        if (!product.getSeller().getId().equals(seller.getId())) {
-            throw new AccessDeniedException("You are not authorized to view this product.");
-        }
+        validateOwnership(product, seller);
 
         return new SellerProductDetailsVO(product);
     }
@@ -129,16 +128,52 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found"));
 
-        if(!product.getSeller().getId().equals(seller.getId())) {
-            throw new AccessDeniedException("You are not authorized to access this product");
-        }
+        validateOwnership(product, seller);
 
         productRepository.delete(product);
+    }
+
+    @Override
+    public void updateProduct(long id, UpdateProductCO updateProductCO) {
+        Seller seller = getSellerFromContext();
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+
+        validateOwnership(product, seller);
+
+        if (nonNull(updateProductCO.getName())) {
+            boolean nameExists = productRepository.existsByNameAndBrandAndSeller_IdAndCategory_Id(
+                    updateProductCO.getName(),
+                    product.getBrand(),
+                    seller.getId(),
+                    product.getCategory().getId()
+            );
+
+            if (nameExists) {
+                throw new ValidationException("Product with this name and brand already exists under the category");
+            }
+            product.setName(updateProductCO.getName());
+        }
+
+        if (nonNull(updateProductCO.getDescription()))
+            product.setDescription(updateProductCO.getDescription());
+        if (nonNull(updateProductCO.getIsCancellable()))
+            product.setCancellable(updateProductCO.getIsCancellable());
+        if (nonNull(updateProductCO.getIsReturnable()))
+            product.setReturnable(updateProductCO.getIsReturnable());
+
+        productRepository.save(product);
     }
 
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Seller not found"));
+    }
+
+    private static void validateOwnership(Product product, Seller seller) {
+        if (!product.getSeller().getId().equals(seller.getId())) {
+            throw new AccessDeniedException("You are not authorized to access this product");
+        }
     }
 }

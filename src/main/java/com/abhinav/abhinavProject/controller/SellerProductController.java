@@ -1,15 +1,18 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.AddProductCO;
+import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,12 +21,13 @@ import java.util.List;
 @RequestMapping("/seller/product")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('SELLER')")
 public class SellerProductController {
 
     ProductService productService;
 
     @PostMapping()
-    public ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductCO addProductCO) {
+    public ResponseEntity<ApiResponse> addProduct(@RequestBody @Valid AddProductCO addProductCO) {
         productService.addNewProduct(addProductCO);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse("Product added successfully")
@@ -51,5 +55,13 @@ public class SellerProductController {
     public ResponseEntity<ApiResponse> deleteProduct(@PathVariable long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateProduct(@PathVariable long id, @RequestBody @Valid UpdateProductCO updateProductCO) {
+        productService.updateProduct(id, updateProductCO);
+        return ResponseEntity.ok(
+                new ApiResponse("Product updated successfully")
+        );
     }
 }
