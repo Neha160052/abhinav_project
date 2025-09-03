@@ -4,7 +4,9 @@ import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.entity.category.Category;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.user.Seller;
+import com.abhinav.abhinavProject.exception.AccessDeniedException;
 import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
+import com.abhinav.abhinavProject.exception.ProductNotFoundException;
 import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.repository.CategoryRepository;
 import com.abhinav.abhinavProject.repository.ProductRepository;
@@ -12,6 +14,7 @@ import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -70,5 +73,21 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepository.save(product);
         emailServiceImpl.sendProductAddEmail(savedProduct);
+    }
+
+    @Override
+    public SellerProductDetailsVO getProduct(long id) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Seller seller = sellerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Seller not found"));
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found."));
+
+        if (!product.getSeller().getId().equals(seller.getId())) {
+            throw new AccessDeniedException("You are not authorized to view this product.");
+        }
+
+        return new SellerProductDetailsVO(product);
     }
 }

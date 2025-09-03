@@ -3,14 +3,12 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
+import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/seller/product")
@@ -26,5 +24,11 @@ public class SellerProductController {
         return ResponseEntity.ok(
                 new ApiResponse("Product added successfully")
         );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SellerProductDetailsVO> getProduct(@PathVariable long id) {
+        SellerProductDetailsVO product = productService.getProduct(id);
+        return ResponseEntity.ok(product);
     }
 }
