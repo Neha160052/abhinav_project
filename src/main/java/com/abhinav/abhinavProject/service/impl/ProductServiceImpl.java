@@ -13,14 +13,23 @@ import com.abhinav.abhinavProject.repository.ProductRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.ProductService;
+import com.abhinav.abhinavProject.specification.ProductSpecification;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import static java.util.Objects.nonNull;
 
@@ -37,9 +46,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void addNewProduct(AddProductCO addProductCO) {
-        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Seller seller = sellerRepository.findByUser_Email(principal.getUsername())
-                .orElseThrow(() -> new UserNotFoundException("Seller not found"));
+        Seller seller = getSellerFromContext();
 
         Category category = categoryRepository.findById(addProductCO.getCategoryId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
@@ -77,9 +84,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public SellerProductDetailsVO getProduct(long id) {
-        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Seller seller = sellerRepository.findByUser_Email(principal.getUsername())
-                .orElseThrow(() -> new UserNotFoundException("Seller not found"));
+        Seller seller = getSellerFromContext();
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found."));
@@ -89,5 +94,38 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return new SellerProductDetailsVO(product);
+    }
+
+    @Override
+    public PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(Integer page, Integer size, String sort, String order, String query) {
+        Seller seller = getSellerFromContext();
+
+        Sort.Direction direction = "asc".equalsIgnoreCase(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+
+        Specification<Product> spec = ProductSpecification.hasSellerId(seller.getId());
+
+        if (!query.isBlank()) {
+            spec = spec.and(ProductSpecification.nameContains(query).or(ProductSpecification.brandContains(query)));
+        }
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<SellerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+                .map(SellerProductDetailsVO::new)
+                .toList();
+
+        return new PageResponseVO<>(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.hasNext(),
+                productDetailsVOS
+        );
+    }
+
+    private Seller getSellerFromContext() {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return sellerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Seller not found"));
     }
 }
