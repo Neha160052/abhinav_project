@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.config.AdminProps;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.user.User;
 import lombok.AccessLevel;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl {
 
     JavaMailSender javaMailSender;
+    AdminProps adminProps;
 
     public void sendMail(String to, String subject, String body) {
         try {
@@ -82,12 +84,11 @@ public class EmailServiceImpl {
         );
     }
 
-    public void sendProductAddEmail(Product product) {
+    public void sendProductAddedEmail(Product product) {
         sendMail(
-                //TODO ADMIN CONFIG
-                "abhinav.chaudhary@tothenew.com",
+                adminProps.getEmail(),
                 "New Product Added",
-                "Hi Admin,\nA new product has been added with id " + product.getId() + ".\nPlease activate it after verification."
+                "Hi " + adminProps.getFirstname() + ",\nA new product has been added with id " + product.getId() + ".\nPlease activate it after verification."
         );
     }
 

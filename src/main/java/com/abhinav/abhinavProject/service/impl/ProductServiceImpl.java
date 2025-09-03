@@ -50,10 +50,10 @@ public class ProductServiceImpl implements ProductService {
         Seller seller = getSellerFromContext();
 
         Category category = categoryRepository.findById(addProductCO.getCategoryId())
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", addProductCO.getCategoryId())));
 
         if (!categoryRepository.findByParentCategory_Id(category.getId()).isEmpty()) {
-            throw new ValidationException("Provided category is not a leaf category");
+            throw new ValidationException(messageUtil.getMessage("category.notLeaf", category.getId()));
         }
 
         boolean nameExists = productRepository.existsByNameAndBrandAndSeller_IdAndCategory_Id(
@@ -64,7 +64,11 @@ public class ProductServiceImpl implements ProductService {
         );
 
         if (nameExists) {
-            throw new ValidationException("Product with this name and brand already exists under the category");
+            throw new ValidationException(messageUtil.getMessage(
+                    "product.name.alreadyExists",
+                    addProductCO.getName(),
+                    addProductCO.getBrand()
+            ));
         }
 
         Product product = new Product();
@@ -80,15 +84,13 @@ public class ProductServiceImpl implements ProductService {
             product.setReturnable(addProductCO.getIsReturnable());
 
         Product savedProduct = productRepository.save(product);
-        emailServiceImpl.sendProductAddEmail(savedProduct);
+        emailServiceImpl.sendProductAddedEmail(savedProduct);
     }
 
     @Override
     public SellerProductDetailsVO getProduct(long id) {
         Seller seller = getSellerFromContext();
-
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product with ID " + id + " not found."));
+        Product product = getProductEntity(id);
 
         validateOwnership(product, seller);
 
@@ -125,8 +127,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(long id) {
         Seller seller = getSellerFromContext();
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+        Product product = getProductEntity(id);
 
         validateOwnership(product, seller);
 
@@ -136,8 +137,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateProduct(long id, UpdateProductCO updateProductCO) {
         Seller seller = getSellerFromContext();
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+        Product product = getProductEntity(id);
 
         validateOwnership(product, seller);
 
@@ -150,7 +150,11 @@ public class ProductServiceImpl implements ProductService {
             );
 
             if (nameExists) {
-                throw new ValidationException("Product with this name and brand already exists under the category");
+                throw new ValidationException(messageUtil.getMessage(
+                        "product.name.alreadyExists",
+                        updateProductCO.getName(),
+                        product.getBrand()
+                ));
             }
             product.setName(updateProductCO.getName());
         }
@@ -167,8 +171,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public String activateProduct(long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found"));
+        Product product = getProductEntity(id);
 
         if(product.isActive()) {
             return messageUtil.getMessage("product.alreadyActive");
@@ -183,8 +186,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public String deactivateProduct(long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(()-> new ProductNotFoundException("Product not found"));
+        Product product = getProductEntity(id);
 
         if(!product.isActive()) {
             return messageUtil.getMessage("product.alreadyInactive");
@@ -200,12 +202,17 @@ public class ProductServiceImpl implements ProductService {
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())
-                .orElseThrow(() -> new UserNotFoundException("Seller not found"));
+                .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notfound")));
     }
 
-    private static void validateOwnership(Product product, Seller seller) {
+    private Product getProductEntity(long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(messageUtil.getMessage("product.notFound", id)));
+    }
+
+    private void validateOwnership(Product product, Seller seller) {
         if (!product.getSeller().getId().equals(seller.getId())) {
-            throw new AccessDeniedException("You are not authorized to access this product");
+            throw new AccessDeniedException(messageUtil.getMessage("access.denied"));
         }
     }
 }

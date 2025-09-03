@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject;
 import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.User;
+import com.abhinav.abhinavProject.exception.RoleNotFoundException;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ class AbhinavProjectApplicationTests {
         user.setLocked(false);
         user.setMiddleName("");
         user.setPassword("abc@123");
-        user.setRole(roleRepository.findByAuthority("ROLE_SELLER"));
+        user.setRole(roleRepository.findByAuthority("ROLE_SELLER").orElseThrow(()->new RoleNotFoundException("Role not Found")));
 
         Customer customer = new Customer();
         customer.setContact(9919788111L);

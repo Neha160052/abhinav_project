@@ -13,12 +13,10 @@ public class ProductSpecification {
                 criteriaBuilder.equal(root.get("seller").get("id"), sellerId);
     }
 
-
     public static Specification<Product> nameContains(String name) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%");
     }
-
 
     public static Specification<Product> brandContains(String brand) {
         return (root, query, criteriaBuilder) ->

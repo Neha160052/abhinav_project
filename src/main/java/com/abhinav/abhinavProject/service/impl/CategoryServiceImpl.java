@@ -14,6 +14,7 @@ import com.abhinav.abhinavProject.repository.CategoryMetadataFieldValuesReposito
 import com.abhinav.abhinavProject.repository.CategoryRepository;
 import com.abhinav.abhinavProject.repository.ProductRepository;
 import com.abhinav.abhinavProject.service.CategoryService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 import com.abhinav.abhinavProject.vo.CategoryMetadataFieldAndValuesVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -36,6 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
     CategoryMetadataFieldRepository categoryMetadataFieldRepository;
     CategoryMetadataFieldValuesRepository fieldValuesRepository;
     ProductRepository productRepository;
+    MessageUtil messageUtil;
 
     @Override
     public CategoryDetailsVO addNewCategory(NewCategoryCO newCategoryCO) {
@@ -43,14 +45,16 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (newCategoryCO.getParentCategoryId() != null) {
             parentCategory = categoryRepository.findById(newCategoryCO.getParentCategoryId())
-                    .orElseThrow(() -> new CategoryNotFoundException("Parent category with ID " + newCategoryCO.getParentCategoryId() + " not found."));
+                    .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage(
+                            "parent.category.notFound", newCategoryCO.getParentCategoryId()))
+                    );
 
             if (!fieldValuesRepository.findByCategory_Id(parentCategory.getId()).isEmpty()) {
-                throw new ValidationException("Cannot add new category under the parent category. Parent category already has metadata field values associated to it.");
+                throw new ValidationException(messageUtil.getMessage("parent.category.hasFields"));
             }
 
             if (productRepository.existsByCategoryId(newCategoryCO.getParentCategoryId())) {
-                throw new ValidationException("Parent category cannot be associated with existing products.");
+                throw new ValidationException(messageUtil.getMessage("parent.category.hasProducts"));
             }
         }
 
@@ -72,7 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDetailsVO getCategoryDetails(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id)));
         return buildCategoryDetailsVO(category);
     }
 
@@ -93,7 +97,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(Long id, UpdateCategoryCO updateCategoryCO) {
         Category thisCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id)));
 
         Category parentCategory = thisCategory.getParentCategory();
 
@@ -109,23 +113,25 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void addCategoryMetadataField(CategoryMetadataCO addCO) {
         Category category = categoryRepository.findById(addCO.getCategoryId())
-                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + addCO.getCategoryId() + " not found."));
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", addCO.getCategoryId())));
 
         if (!categoryRepository.findByParentCategory_Id(category.getId()).isEmpty()) {
-            throw new ValidationException("Metadata Fields & Values cannot be added to an intermediate category");
+            throw new ValidationException(messageUtil.getMessage("metadata.onNonLeaf"));
         }
 
         for (MetadataFieldValuesCO fieldValuesCO : addCO.getMetadataFieldValues()) {
             CategoryMetadataField metadataField = categoryMetadataFieldRepository.findById(fieldValuesCO.getMetadataFieldId())
-                    .orElseThrow(() -> new MetadataFieldNotFoundException("Field not found"));
+                    .orElseThrow(() -> new MetadataFieldNotFoundException(messageUtil.getMessage(
+                            "metadatafield.notfound.id", fieldValuesCO.getMetadataFieldId()))
+                    );
 
             if (fieldValuesCO.getValues().isEmpty()) {
-                throw new ValidationException("Values list for metadata field ID " + fieldValuesCO.getMetadataFieldId() + " cannot be empty.");
+                throw new ValidationException(messageUtil.getMessage("metadatafield.values.empty", fieldValuesCO.getMetadataFieldId()));
             }
 
             Optional<CategoryMetadataFieldValues> association = fieldValuesRepository.findByCategory_IdAndCategoryMetadataField_Id(category.getId(), metadataField.getId());
             if (association.isPresent()) {
-                throw new ValidationException("Metadata field ID " + metadataField.getId() + " is already associated with this category.");
+                throw new ValidationException(messageUtil.getMessage("metadatafield.alreadyLinked", metadataField.getId()));
             }
 
             CategoryMetadataFieldValues newFieldValue = new CategoryMetadataFieldValues();
@@ -140,18 +146,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategoryMetadataField(CategoryMetadataCO categoryMetadataCO) {
         Category category = categoryRepository.findById(categoryMetadataCO.getCategoryId())
-                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryMetadataCO.getCategoryId() + " not found."));
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", categoryMetadataCO.getCategoryId())));
 
         for (MetadataFieldValuesCO fieldValuesCO : categoryMetadataCO.getMetadataFieldValues()) {
             categoryMetadataFieldRepository.findById(fieldValuesCO.getMetadataFieldId())
-                    .orElseThrow(() -> new MetadataFieldNotFoundException("Field not found with id: " + fieldValuesCO.getMetadataFieldId()));
+                    .orElseThrow(() -> new MetadataFieldNotFoundException(messageUtil.getMessage("metadatafield.notfound.id", fieldValuesCO.getMetadataFieldId())));
 
             CategoryMetadataFieldValues association = fieldValuesRepository
                     .findByCategory_IdAndCategoryMetadataField_Id(category.getId(), fieldValuesCO.getMetadataFieldId())
-                    .orElseThrow(() -> new ValidationException("Metadata field ID " + fieldValuesCO.getMetadataFieldId() + " is not associated with category ID " + category.getId()));
+                    .orElseThrow(() -> new ValidationException(messageUtil.getMessage("metadatafield.notLinked", fieldValuesCO.getMetadataFieldId(), category.getId())));
 
             if (fieldValuesCO.getValues() == null || fieldValuesCO.getValues().isEmpty()) {
-                throw new ValidationException("Values list for metadata field ID " + fieldValuesCO.getMetadataFieldId() + " cannot be null or empty.");
+                throw new ValidationException(messageUtil.getMessage("metadatafield.values.empty", fieldValuesCO.getMetadataFieldId()));
             }
 
             Set<String> existingValues = association.getValuesList();
@@ -193,7 +199,7 @@ public class CategoryServiceImpl implements CategoryService {
             categories = categoryRepository.findByParentCategoryIsNull();
         } else {
             if (!categoryRepository.existsById(id)) {
-                throw new CategoryNotFoundException("Category with ID " + id + " not found.");
+                throw new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id));
             }
             categories = categoryRepository.findByParentCategory_Id(id);
         }
@@ -237,7 +243,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         if (existingCategory.isPresent()) {
-            throw new ValidationException("Category name '" + name + "' already exists under this parent.");
+            throw new ValidationException(messageUtil.getMessage("category.alreadyExists", name));
         }
     }
 
@@ -246,7 +252,7 @@ public class CategoryServiceImpl implements CategoryService {
         while (current != null) {
             if (current.getName().equalsIgnoreCase(newName)) {
                 throw new ValidationException(
-                    "Category name '" + newName + "' conflicts with an ancestor category's name '" + current.getName() + "'."
+                        messageUtil.getMessage("category.name.ancestorConflict", newName, current.getName())
                 );
             }
             current = current.getParentCategory();

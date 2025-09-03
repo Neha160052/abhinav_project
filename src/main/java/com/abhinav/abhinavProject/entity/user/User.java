@@ -7,9 +7,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,16 +20,16 @@ import java.util.Set;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"email"}),
-})
-//@SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED)
+@Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
 
+    @Column(unique = true)
     String email;
 
     String firstName;
@@ -48,7 +50,7 @@ public class User {
 
     int invalidAttemptCount;
 
-    ZonedDateTime passwordUpdateDate;
+    LocalDateTime passwordUpdateDate;
 
     @ManyToOne
     @JoinColumn(name = "role_id")

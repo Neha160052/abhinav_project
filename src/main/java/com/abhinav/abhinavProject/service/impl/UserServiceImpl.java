@@ -10,13 +10,15 @@ import com.abhinav.abhinavProject.repository.AddressRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.UserService;
-import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 import static java.util.Objects.nonNull;
 
@@ -28,7 +30,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     EmailServiceImpl emailServiceImpl;
     AddressRepository addressRepository;
-    AuthUtils authUtils;
+    PasswordEncoder passwordEncoder;
     MessageUtil messageUtil;
 
     @Override
@@ -70,7 +72,9 @@ public class UserServiceImpl implements UserService {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
+        user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
+        user.setPasswordUpdateDate(LocalDateTime.now());
+        userRepository.save(user);
         emailServiceImpl.sendPasswordUpdateMail(user);
     }
 

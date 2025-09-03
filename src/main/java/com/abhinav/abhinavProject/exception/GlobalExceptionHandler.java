@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ApiResponse> handleValidation(ValidationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Validation Exception",ex.getMessage())
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Validation Exception", ex.getMessage())
         );
     }
 
@@ -58,7 +58,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiResponse> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("user.notfound"))
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "User Not Found", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleRoleNotFound(RoleNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role Not Found", ex.getMessage())
         );
     }
 
@@ -72,42 +79,49 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ApiResponse> handleCatNotFound(CategoryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("category.notFound"))
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Category not found", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(MetadataFieldNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleMetaFieldNotFound(MetadataFieldNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Metadata Field not found", ex.getMessage())
         );
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ApiResponse> handleProductNotFound(ProductNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("product.notFound"))
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Product not found", ex.getMessage())
         );
     }
 
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<ApiResponse> handleAccountInactive(AccountInactiveException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), messageUtil.getMessage("account.inactive"))
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Account not activated", ex.getMessage())
         );
     }
 
     @ExceptionHandler(PasswordMismatchException.class)
     public ResponseEntity<ApiResponse> handlePasswordMismatch(PasswordMismatchException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), messageUtil.getMessage("password.mismatch"))
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Password mismatch", ex.getMessage())
         );
     }
 
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ApiResponse> handleInvalidToken(InvalidTokenException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("token.invalid"))
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Invalid Token", ex.getMessage())
         );
     }
 
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<ApiResponse> handleExpiredToken(TokenExpiredException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), messageUtil.getMessage("token.expired"))
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Expired Token", ex.getMessage())
         );
     }
 

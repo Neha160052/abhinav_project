@@ -6,6 +6,7 @@ import com.abhinav.abhinavProject.entity.user.Role;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.exception.PasswordMismatchException;
+import com.abhinav.abhinavProject.exception.RoleNotFoundException;
 import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
@@ -49,10 +50,11 @@ public class SellerServiceImpl implements SellerService {
         }
 
         if(!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new PasswordMismatchException("Password mismatch.");
+            throw new PasswordMismatchException("Password mismatch");
         }
 
-        Role sellerRole = roleRepository.findByAuthority("ROLE_SELLER");
+        Role sellerRole = roleRepository.findByAuthority("ROLE_SELLER")
+                .orElseThrow(() -> new RoleNotFoundException("Role not found"));
 
         User user = new User();
         user.setEmail(registerCO.getEmail());

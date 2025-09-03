@@ -21,7 +21,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,14 +51,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     public void registerCustomer(CustomerRegisterCO registerCO, MultipartFile file) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
-            throw new ValidationException("Email already registered");
+            throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
 
         if (!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new ValidationException("Password mismatch.");
+            throw new ValidationException(messageUtil.getMessage("password.mismatch"));
         }
 
-        Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER");
+        Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER")
+                .orElseThrow(() -> new RoleNotFoundException(messageUtil.getMessage("role.notFound")));
 
         User user = new User();
         Customer customer = new Customer();
