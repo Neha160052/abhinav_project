@@ -165,6 +165,22 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
+    @Override
+    public String activateProduct(long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ProductNotFoundException("Product not found"));
+
+        if(product.isActive()) {
+            return messageUtil.getMessage("product.alreadyActive");
+        }
+
+        product.setActive(true);
+        Product savedProduct = productRepository.save(product);
+
+        emailServiceImpl.sendProductActivatedMail(savedProduct);
+        return messageUtil.getMessage("product.activated.success");
+    }
+
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())

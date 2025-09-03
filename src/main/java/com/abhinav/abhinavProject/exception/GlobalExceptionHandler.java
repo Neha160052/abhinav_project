@@ -76,6 +76,13 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleProductNotFound(ProductNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("product.notFound"))
+        );
+    }
+
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<ApiResponse> handleAccountInactive(AccountInactiveException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(

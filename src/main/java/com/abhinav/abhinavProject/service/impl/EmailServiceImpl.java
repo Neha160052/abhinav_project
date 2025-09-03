@@ -84,9 +84,18 @@ public class EmailServiceImpl {
 
     public void sendProductAddEmail(Product product) {
         sendMail(
+                //TODO ADMIN CONFIG
                 "abhinav.chaudhary@tothenew.com",
                 "New Product Added",
                 "Hi Admin,\nA new product has been added with id " + product.getId() + ".\nPlease activate it after verification."
+        );
+    }
+
+    public void sendProductActivatedMail(Product product) {
+        sendMail(
+                product.getSeller().getUser().getEmail(),
+                "Product Activated Successfully",
+                "Hi " +product.getSeller().getUser().getFirstName()+ ",\nYour product "+product.getName()+" has been activated by the admin."
         );
     }
 }
