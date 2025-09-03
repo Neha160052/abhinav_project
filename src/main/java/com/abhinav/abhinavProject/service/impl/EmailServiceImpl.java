@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.user.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +79,14 @@ public class EmailServiceImpl {
                 user.getEmail(),
                 "Account Locked notification",
                 "Hi " + user.getFirstName() + ",\nYour account has been locked because 3 invalid password attempts were made."
+        );
+    }
+
+    public void sendProductAddEmail(Product product) {
+        sendMail(
+                "abhinav.chaudhary@tothenew.com",
+                "New Product Added",
+                "Hi Admin,\nA new product has been added with id " + product.getId() + ".\nPlease activate it after verification."
         );
     }
 }
