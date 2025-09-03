@@ -123,6 +123,19 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
+    @Override
+    public void deleteProduct(long id) {
+        Seller seller = getSellerFromContext();
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+
+        if(!product.getSeller().getId().equals(seller.getId())) {
+            throw new AccessDeniedException("You are not authorized to access this product");
+        }
+
+        productRepository.delete(product);
+    }
+
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())

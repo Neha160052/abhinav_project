@@ -46,4 +46,10 @@ public class SellerProductController {
         SellerProductDetailsVO product = productService.getProduct(id);
         return ResponseEntity.ok(product);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
 }
