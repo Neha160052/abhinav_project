@@ -98,4 +98,12 @@ public class EmailServiceImpl {
                 "Hi " +product.getSeller().getUser().getFirstName()+ ",\nYour product "+product.getName()+" has been activated by the admin."
         );
     }
+
+    public void sendProductDeactivatedMail(Product product) {
+        sendMail(
+                product.getSeller().getUser().getEmail(),
+                "Product Deactivated Notification",
+                "Hi " +product.getSeller().getUser().getFirstName()+ ",\nYour product "+product.getName()+" with product id:"+product.getId()+" has been deactivated by the admin."
+        );
+    }
 }

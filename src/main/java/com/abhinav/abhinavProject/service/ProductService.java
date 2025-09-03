@@ -21,4 +21,5 @@ public interface ProductService {
 
     String activateProduct(long id);
 
+    String deactivateProduct(long id);
 }

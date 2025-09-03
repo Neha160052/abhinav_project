@@ -181,6 +181,22 @@ public class ProductServiceImpl implements ProductService {
         return messageUtil.getMessage("product.activated.success");
     }
 
+    @Override
+    public String deactivateProduct(long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ProductNotFoundException("Product not found"));
+
+        if(!product.isActive()) {
+            return messageUtil.getMessage("product.alreadyInactive");
+        }
+
+        product.setActive(false);
+        Product savedProduct = productRepository.save(product);
+
+        emailServiceImpl.sendProductDeactivatedMail(savedProduct);
+        return messageUtil.getMessage("product.deactivated.success");
+    }
+
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())

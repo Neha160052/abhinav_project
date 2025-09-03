@@ -28,4 +28,13 @@ public class AdminProductController {
                 new ApiResponse(response)
         );
     }
+
+    @PutMapping("/deactivate/{id}")
+    public ResponseEntity<ApiResponse> deactivateProduct(@PathVariable long id) {
+        String response = productService.deactivateProduct(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse(response)
+        );
+    }
 }
