@@ -1,18 +1,20 @@
 package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.co.AddProductCO;
+import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.entity.category.Category;
+import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.entity.product.Product;
+import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.exception.AccessDeniedException;
 import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
 import com.abhinav.abhinavProject.exception.ProductNotFoundException;
 import com.abhinav.abhinavProject.exception.UserNotFoundException;
-import com.abhinav.abhinavProject.repository.CategoryRepository;
-import com.abhinav.abhinavProject.repository.ProductRepository;
-import com.abhinav.abhinavProject.repository.SellerRepository;
+import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
+import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.specification.ProductSpecification;
 import com.abhinav.abhinavProject.utils.MessageUtil;
@@ -29,8 +31,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
@@ -44,6 +52,9 @@ public class ProductServiceImpl implements ProductService {
     CategoryRepository categoryRepository;
     EmailServiceImpl emailServiceImpl;
     MessageUtil messageUtil;
+    CategoryMetadataFieldValuesRepository fieldValuesRepository;
+    ImageService imageService;
+    ProductVariationRepository productVariationRepository;
 
     @Override
     public void addNewProduct(AddProductCO addProductCO) {
@@ -85,6 +96,33 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepository.save(product);
         emailServiceImpl.sendProductAddedEmail(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public void addProductVariation(long id, AddProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException {
+        Seller seller = getSellerFromContext();
+        Product product = getProductEntity(id);
+        validateOwnership(product, seller);
+        if (!product.isActive()) {
+            throw new ValidationException(messageUtil.getMessage("product.inactive", id));
+        }
+
+        validateMetadata(product.getCategory().getId(), co.getMetadata());
+        validateMetadataStructureAndUniqueness(product, co.getMetadata());
+
+        ProductVariation variation = new ProductVariation();
+        variation.setProduct(product);
+        variation.setPrice(co.getPrice());
+        variation.setQuantityAvailable(co.getQuantityAvailable());
+        variation.setMetadata(co.getMetadata());
+        variation.setActive(true);
+        ProductVariation savedVariation = productVariationRepository.save(variation);
+
+        String imageName = imageService.saveVariationPrimaryImage(savedVariation, primaryImage);
+        imageService.saveVariationSecondaryImages(savedVariation, secondaryImages);
+        savedVariation.setPrimaryImageName(imageName);
+        productVariationRepository.save(variation);
     }
 
     @Override
@@ -213,6 +251,48 @@ public class ProductServiceImpl implements ProductService {
     private void validateOwnership(Product product, Seller seller) {
         if (!product.getSeller().getId().equals(seller.getId())) {
             throw new AccessDeniedException(messageUtil.getMessage("access.denied"));
+        }
+    }
+
+    private void validateMetadata(long categoryId, Map<String, String> inputMetadata) {
+        List<CategoryMetadataFieldValues> allowedFields = fieldValuesRepository.findByCategory_Id(categoryId);
+
+        Map<String, Set<String>> allowedMetadata = allowedFields.stream()
+                .collect(Collectors.toMap(
+                        field -> field.getCategoryMetadataField().getName(),
+                        CategoryMetadataFieldValues::getValuesList
+                ));
+
+
+        for (Map.Entry<String, String> entry : inputMetadata.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            if (!allowedMetadata.containsKey(key)) {
+                throw new ValidationException(messageUtil.getMessage("variation.metadata.field.invalid", key));
+            }
+            if (!allowedMetadata.get(key).contains(value)) {
+                throw new ValidationException(messageUtil.getMessage("variation.metadata.value.invalid", value, key));
+            }
+        }
+    }
+
+    private void validateMetadataStructureAndUniqueness(Product product, Map<String, String> metadata) {
+        List<ProductVariation> variations = product.getVariations();
+
+        if (!variations.isEmpty()) {
+            ProductVariation existingVariation = variations.getFirst();
+            Set<String> fieldEntries = existingVariation.getMetadata().keySet();
+
+            if (!fieldEntries.equals(metadata.keySet())) {
+                throw new ValidationException(messageUtil.getMessage("variation.metadata.structure.invalid"));
+            }
+
+            variations.forEach(variation -> {
+                if (variation.getMetadata().equals(metadata)) {
+                    throw new ValidationException(messageUtil.getMessage("variation.metadata.notUnique"));
+                }
+            });
         }
     }
 }

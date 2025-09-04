@@ -6,6 +6,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -24,8 +29,9 @@ public class ProductVariation {
 
     double price;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
-    String metadata;
+    Map<String, String> metadata = new HashMap<>();
 
     String primaryImageName;
 
