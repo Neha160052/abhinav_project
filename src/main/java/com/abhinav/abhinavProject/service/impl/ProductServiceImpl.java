@@ -207,6 +207,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public AdminProductDetailsVO getAdminProduct(long id) {
+        Product product = productRepository.findByIdAdmin(id)
+                .orElseThrow(()-> new ProductNotFoundException(messageUtil.getMessage("product.notFound", id)));
+        return mapToAdminProductDetailsVO(product);
+    }
+
+    @Override
     public SellerProductVariationDetailsVO getProductVariation(long id) {
         Seller seller = getSellerFromContext();
         ProductVariation productVar = getProductVariationEntity(id);
@@ -244,21 +251,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(Long categoryId, Long sellerId, String query, Map<String, String> metadataFilters, Pageable pageable) {
-        Specification<Product> spec = ProductSpecification.isActive().and(ProductSpecification.hasActiveVariations());
-
-        if (categoryId != null) {
-            List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
-
-            if (categoryIds.isEmpty()) {
-                return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
-            }
-            spec = spec.and(ProductSpecification.hasCategoryIn(categoryIds));
+    public PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable) {
+        List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
+        if (categoryIds.isEmpty()) {
+            return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
         }
 
-        if (sellerId != null) {
-            spec = spec.and(ProductSpecification.hasSellerId(sellerId));
-        }
+        Specification<Product> spec = ProductSpecification.isActive()
+                .and(ProductSpecification.hasActiveVariations())
+                .and(ProductSpecification.hasCategoryIn(categoryIds));
+
         if (hasText(query)) {
             spec = spec.and(ProductSpecification.nameOrBrandContains(query));
         }
@@ -444,6 +446,27 @@ public class ProductServiceImpl implements ProductService {
 
         productDetailsVO.setProductVariations(variationVOs);
         return productDetailsVO;
+    }
+
+    private AdminProductDetailsVO mapToAdminProductDetailsVO(Product product) {
+        AdminProductDetailsVO vo = new AdminProductDetailsVO(product);
+        List<AdminProductVariationDetailsVO> variationVOs = product.getVariations().stream()
+                .map(this::mapToAdminProductVariationDetailsVO)
+                .toList();
+        vo.setProductVariations(variationVOs);
+        return vo;
+    }
+
+    private AdminProductVariationDetailsVO mapToAdminProductVariationDetailsVO(ProductVariation variation) {
+        AdminProductVariationDetailsVO vo = new AdminProductVariationDetailsVO(variation);
+        String primaryImageUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/static/product/")
+                .path(String.valueOf(variation.getProduct().getId()))
+                .path("/variation/")
+                .path(String.valueOf(variation.getId()))
+                .toUriString();
+        vo.setPrimaryImage(primaryImageUri);
+        return vo;
     }
 
     private void validateOwnership(Product product, Seller seller) {

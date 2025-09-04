@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.AdminProductDetailsVO;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +20,12 @@ public class AdminProductController {
 
     ProductService productService;
     MessageUtil messageUtil;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminProductDetailsVO> viewProduct(@PathVariable long id) {
+        AdminProductDetailsVO productDetails = productService.getAdminProduct(id);
+        return ResponseEntity.ok(productDetails);
+    }
 
     @PutMapping("/activate/{id}")
     public ResponseEntity<ApiResponse> activateProduct(@PathVariable long id) {

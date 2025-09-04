@@ -32,20 +32,18 @@ public class CustomerProductController {
 
     @GetMapping
     public ResponseEntity<PageResponseVO<List<CustomerProductDetailsVO>>> getAllProducts(
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Long sellerId,
+            @RequestParam long categoryId,
             @RequestParam(required = false) String query,
             @RequestParam Map<String, String> allParams,
             @PageableDefault(sort = "id") Pageable pageable) {
         allParams.remove("categoryId");
-        allParams.remove("sellerId");
         allParams.remove("query");
         allParams.remove("page");
         allParams.remove("size");
         allParams.remove("sort");
 
         PageResponseVO<List<CustomerProductDetailsVO>> products = productService.getAllCustomerProducts(
-                categoryId, sellerId, query, allParams, pageable);
+                categoryId, query, allParams, pageable);
         return ResponseEntity.ok(products);
     }
 

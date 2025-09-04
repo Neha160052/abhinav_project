@@ -5,10 +5,7 @@ import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
-import com.abhinav.abhinavProject.vo.CustomerProductDetailsVO;
-import com.abhinav.abhinavProject.vo.PageResponseVO;
-import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
-import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
+import com.abhinav.abhinavProject.vo.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,5 +39,7 @@ public interface ProductService {
 
     CustomerProductDetailsVO getCustomerProduct(long id);
 
-    PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(Long categoryId, Long sellerId, String query, Map<String, String> metadataFilters, Pageable pageable);
+    PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable);
+
+    AdminProductDetailsVO getAdminProduct(long id);
 }
