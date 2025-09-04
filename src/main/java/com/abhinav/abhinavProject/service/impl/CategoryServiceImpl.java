@@ -209,6 +209,27 @@ public class CategoryServiceImpl implements CategoryService {
         return response;
     }
 
+    @Override
+    public List<Long> getDescendantLeafCategoryIds(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", categoryId)));
+
+        List<Long> leafCategoryIds = new ArrayList<>();
+        findLeafCategoriesRecursive(category, leafCategoryIds);
+        return leafCategoryIds;
+    }
+
+    private void findLeafCategoriesRecursive(Category category, List<Long> leafCategoryIds) {
+        List<Category> children = categoryRepository.findByParentCategory_Id(category.getId());
+        if (children.isEmpty()) {
+            leafCategoryIds.add(category.getId());
+        } else {
+            for (Category child : children) {
+                findLeafCategoriesRecursive(child, leafCategoryIds);
+            }
+        }
+    }
+
 
     private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
         // get list of ancestors

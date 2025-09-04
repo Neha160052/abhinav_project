@@ -26,4 +26,6 @@ public interface CategoryService {
     PageResponseVO<List<CategoryDetailsVO>> getAllSellerCategories(Pageable pageable);
 
     CategoryDetailsVO getAllCustomerCategories(Long id);
+
+    List<Long> getDescendantLeafCategoryIds(Long categoryId);
 }

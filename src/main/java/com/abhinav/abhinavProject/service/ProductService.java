@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface ProductService {
 
@@ -40,4 +41,6 @@ public interface ProductService {
     PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long id, ProductVariationFilter filter, Pageable pageable);
 
     CustomerProductDetailsVO getCustomerProduct(long id);
+
+    PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(Long categoryId, Long sellerId, String query, Map<String, String> metadataFilters, Pageable pageable);
 }

@@ -13,6 +13,7 @@ import com.abhinav.abhinavProject.exception.*;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
+import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.specification.ProductSpecification;
@@ -33,12 +34,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -53,6 +56,7 @@ public class ProductServiceImpl implements ProductService {
     CategoryMetadataFieldValuesRepository fieldValuesRepository;
     ImageService imageService;
     ProductVariationRepository productVariationRepository;
+    CategoryService categoryService;
 
     @Override
     public void addNewProduct(AddProductCO addProductCO) {
@@ -222,13 +226,50 @@ public class ProductServiceImpl implements ProductService {
         Specification<Product> spec = ProductSpecification.hasSellerId(seller.getId());
 
         if (!query.isBlank()) {
-            spec = spec.and(ProductSpecification.nameContains(query).or(ProductSpecification.brandContains(query)));
+            spec = spec.and(ProductSpecification.nameOrBrandContains(query));
         }
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
         List<SellerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
                 .map(SellerProductDetailsVO::new)
+                .toList();
+
+        return new PageResponseVO<>(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.hasNext(),
+                productDetailsVOS
+        );
+    }
+
+    @Override
+    public PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(Long categoryId, Long sellerId, String query, Map<String, String> metadataFilters, Pageable pageable) {
+        Specification<Product> spec = ProductSpecification.isActive().and(ProductSpecification.hasActiveVariations());
+
+        if (categoryId != null) {
+            List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
+
+            if (categoryIds.isEmpty()) {
+                return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
+            }
+            spec = spec.and(ProductSpecification.hasCategoryIn(categoryIds));
+        }
+
+        if (sellerId != null) {
+            spec = spec.and(ProductSpecification.hasSellerId(sellerId));
+        }
+        if (hasText(query)) {
+            spec = spec.and(ProductSpecification.nameOrBrandContains(query));
+        }
+        if (metadataFilters != null && !metadataFilters.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasMetadata(metadataFilters));
+        }
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<CustomerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+                .map(this::mapToCustomerProductDetailsVO)
                 .toList();
 
         return new PageResponseVO<>(
@@ -389,6 +430,20 @@ public class ProductServiceImpl implements ProductService {
         // TODO set secondary images
 
         return vo;
+    }
+
+    private CustomerProductDetailsVO mapToCustomerProductDetailsVO(Product product) {
+        CustomerProductDetailsVO productDetailsVO = new CustomerProductDetailsVO(product);
+        List<ProductVariation> activeVariations = product.getVariations().stream()
+                .filter(ProductVariation::isActive)
+                .toList();
+
+        List<CustomerProductVariationDetailsVO> variationVOs = activeVariations.stream()
+                .map(this::mapToCustomerProductVariationVO)
+                .toList();
+
+        productDetailsVO.setProductVariations(variationVOs);
+        return productDetailsVO;
     }
 
     private void validateOwnership(Product product, Seller seller) {
