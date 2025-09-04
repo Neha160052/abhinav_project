@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.service.impl;
 import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
+import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.entity.category.Category;
 import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.entity.product.Product;
@@ -121,6 +122,48 @@ public class ProductServiceImpl implements ProductService {
         String imageName = imageService.saveVariationPrimaryImage(savedVariation, primaryImage);
         imageService.saveVariationSecondaryImages(savedVariation, secondaryImages);
         savedVariation.setPrimaryImageName(imageName);
+        productVariationRepository.save(variation);
+    }
+
+    @Override
+    @Transactional(rollbackFor = {IOException.class, ValidationException.class})
+    public void updateProductVariation(long id, UpdateProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException {
+        Seller seller = getSellerFromContext();
+        ProductVariation variation = getProductVariationEntity(id);
+        Product product = variation.getProduct();
+
+        validateOwnership(product, seller);
+
+        if (product.isDeleted()) {
+            throw new ProductNotFoundException(messageUtil.getMessage("product.notFound", product.getId()));
+        }
+        if (!product.isActive()) {
+            throw new ValidationException(messageUtil.getMessage("product.inactive", product.getId()));
+        }
+
+        if (nonNull(co.getPrice())) {
+            variation.setPrice(co.getPrice());
+        }
+        if (nonNull(co.getQuantityAvailable())) {
+            variation.setQuantityAvailable(co.getQuantityAvailable());
+        }
+        if (nonNull(co.getIsActive())) {
+            variation.setActive(co.getIsActive());
+        }
+
+        if (nonNull(co.getMetadata()) && !co.getMetadata().isEmpty()) {
+            validateMetadata(product.getCategory().getId(), co.getMetadata());
+            variation.getMetadata().putAll(co.getMetadata());
+        }
+
+        if (nonNull(primaryImage) && !primaryImage.isEmpty()) {
+            String imageName = imageService.saveVariationPrimaryImage(variation, primaryImage);
+            variation.setPrimaryImageName(imageName);
+        }
+        if (nonNull(secondaryImages) && !secondaryImages.isEmpty()) {
+            imageService.saveVariationSecondaryImages(variation, secondaryImages);
+        }
+
         productVariationRepository.save(variation);
     }
 

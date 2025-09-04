@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.controller;
 import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
+import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.service.ProductService;
@@ -86,6 +87,17 @@ public class SellerProductController {
     public ResponseEntity<SellerProductVariationDetailsVO> getProductVariation(@PathVariable long id) {
         SellerProductVariationDetailsVO product = productService.getProductVariation(id);
         return ResponseEntity.ok(product);
+    }
+
+    @PatchMapping(value = "/variation/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse> updateProductVariation(
+            @PathVariable long id,
+            @RequestPart("data") @Valid UpdateProductVariationCO updateProductVariationCO,
+            @RequestPart(value = "primaryImage", required = false) MultipartFile primaryImage,
+            @RequestPart(value = "secondaryImages", required = false) List<MultipartFile> secondaryImages
+    ) throws IOException {
+        productService.updateProductVariation(id, updateProductVariationCO, primaryImage, secondaryImages);
+        return ResponseEntity.ok(new ApiResponse("Product variation updated successfully"));
     }
 
     @GetMapping("/{id}/variation")

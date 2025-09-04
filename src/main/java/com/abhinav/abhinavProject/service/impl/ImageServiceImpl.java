@@ -87,8 +87,7 @@ public class ImageServiceImpl implements ImageService {
         if (primaryImage == null || primaryImage.isEmpty()) {
             throw new ValidationException("Primary Image is needed to add Product Variation");
         }
-        String fileName = String.valueOf(variation.getId());
-        return saveVariationImage(variation, primaryImage, fileName);
+        return saveVariationImage(variation, primaryImage, String.valueOf(variation.getId()));
     }
 
     @Override

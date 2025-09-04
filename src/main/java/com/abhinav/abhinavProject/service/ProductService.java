@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.service;
 import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
+import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
@@ -16,6 +17,8 @@ import java.util.List;
 public interface ProductService {
 
     void addNewProduct(AddProductCO addProductCO);
+
+    void updateProductVariation(long id, UpdateProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException;
 
     SellerProductDetailsVO getProduct(long id);
 
