@@ -10,11 +10,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ImageService {
-    void save(MultipartFile file, Long userId) throws IOException;
-    Resource load(Long userId) throws IOException;
+    void saveUserProfileImage(MultipartFile file, Long userId) throws IOException;
+
+    Resource loadUserProfileImage(Long userId) throws IOException;
+
     Optional<Path> fileExists(Long userId) throws IOException;
 
     String saveVariationPrimaryImage(ProductVariation savedVariation, MultipartFile primaryImage) throws IOException;
 
-    List<String> saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException;
+    void saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException;
+
+    Resource loadVariationPrimaryImage(Long productId, Long variationId) throws IOException;
 }

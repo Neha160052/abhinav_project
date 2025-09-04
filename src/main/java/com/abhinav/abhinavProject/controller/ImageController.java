@@ -24,19 +24,11 @@ public class ImageController {
 
     ImageService imageService;
 
-    @GetMapping("/{userId}/profile-image")
+    @GetMapping("/user/{userId}/profile-image")
     public ResponseEntity<Resource> getProfileImage(@PathVariable Long userId, HttpServletRequest request) {
         try {
-            Resource resource = imageService.load(userId);
-
-            // Determine file's content type
-            String contentType = null;
-            try {
-                contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-            } catch (IOException ex) {
-                // Fallback to the default content type if type could not be determined
-                contentType = "application/octet-stream";
-            }
+            Resource resource = imageService.loadUserProfileImage(userId);
+            String contentType = getContentType(request, resource);
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
@@ -45,6 +37,32 @@ public class ImageController {
 
         } catch (IOException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/product/{productId}/variation/{variationId}")
+    public ResponseEntity<Resource> getProfileImage(@PathVariable Long productId,
+                                                    @PathVariable Long variationId,
+                                                    HttpServletRequest request) {
+        try {
+            Resource resource = imageService.loadVariationPrimaryImage(productId, variationId);
+            String contentType = getContentType(request, resource);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private String getContentType(HttpServletRequest request, Resource resource) {
+        try {
+            return request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            return "application/octet-stream";
         }
     }
 }

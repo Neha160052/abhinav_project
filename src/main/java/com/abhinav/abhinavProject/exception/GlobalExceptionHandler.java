@@ -97,6 +97,13 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ProductVariationNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleProductVariationNotFound(ProductVariationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Product variation not found", ex.getMessage())
+        );
+    }
+
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<ApiResponse> handleAccountInactive(AccountInactiveException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(

@@ -7,6 +7,7 @@ import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
+import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -79,5 +80,11 @@ public class SellerProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse("Product variation added successfully")
         );
+    }
+
+    @GetMapping("/variation/{id}")
+    public ResponseEntity<SellerProductVariationDetailsVO> getProductVariation(@PathVariable long id) {
+        SellerProductVariationDetailsVO product = productService.getProductVariation(id);
+        return ResponseEntity.ok(product);
     }
 }

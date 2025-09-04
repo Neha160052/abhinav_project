@@ -8,10 +8,7 @@ import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.entity.user.Seller;
-import com.abhinav.abhinavProject.exception.AccessDeniedException;
-import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
-import com.abhinav.abhinavProject.exception.ProductNotFoundException;
-import com.abhinav.abhinavProject.exception.UserNotFoundException;
+import com.abhinav.abhinavProject.exception.*;
 import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.ImageService;
@@ -20,6 +17,7 @@ import com.abhinav.abhinavProject.specification.ProductSpecification;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
+import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -133,6 +132,19 @@ public class ProductServiceImpl implements ProductService {
         validateOwnership(product, seller);
 
         return new SellerProductDetailsVO(product);
+    }
+
+    @Override
+    public SellerProductVariationDetailsVO getProductVariation(long id) {
+        Seller seller = getSellerFromContext();
+        ProductVariation productVar = getProductVariationEntity(id);
+
+        validateOwnership(productVar.getProduct(), seller);
+        if (productVar.getProduct().isDeleted()) {
+            throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
+        }
+
+        return setPrimaryImage(new SellerProductVariationDetailsVO(productVar));
     }
 
     @Override
@@ -246,6 +258,23 @@ public class ProductServiceImpl implements ProductService {
     private Product getProductEntity(long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(messageUtil.getMessage("product.notFound", id)));
+    }
+
+    private ProductVariation getProductVariationEntity(long id) {
+        return productVariationRepository.findById(id)
+                .orElseThrow(() -> new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id)));
+    }
+
+    private SellerProductVariationDetailsVO setPrimaryImage(SellerProductVariationDetailsVO dto) {
+        String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/static/")
+                .path("/product/")
+                .path(String.valueOf(dto.getProductDetails().getId()))
+                .path("/variation/")
+                .path(String.valueOf(dto.getId()))
+                .toUriString();
+        dto.setPrimaryImage(uri);
+        return dto;
     }
 
     private void validateOwnership(Product product, Seller seller) {

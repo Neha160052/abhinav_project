@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.entity.product;
 
 
+import com.abhinav.abhinavProject.entity.AuditData;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,11 +9,13 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -37,4 +40,6 @@ public class ProductVariation {
 
     boolean isActive;
 
+    @Embedded
+    AuditData auditData = new AuditData();
 }

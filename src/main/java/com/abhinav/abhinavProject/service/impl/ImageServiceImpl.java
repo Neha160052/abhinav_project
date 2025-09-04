@@ -18,7 +18,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -38,7 +42,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void save(MultipartFile file, Long userId) throws IOException {
+    public void saveUserProfileImage(MultipartFile file, Long userId) throws IOException {
         String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String extension = getFileExtension(originalFilename);
         validateFileExtension(extension);
@@ -52,13 +56,13 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Resource load(Long userId) throws IOException {
-        Optional<Path> foundFile = Files.walk(userImageStorageLocation, 1)
-                .filter(path -> {
-                    String filename = path.getFileName().toString();
-                    return filename.startsWith(userId + ".");
-                })
-                .findFirst();
+    public Resource loadUserProfileImage(Long userId) throws IOException {
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(userImageStorageLocation, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(userId + "."))
+                    .findFirst();
+        }
 
         if (foundFile.isPresent()) {
             Path filePath = foundFile.get();
@@ -84,20 +88,50 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public List<String> saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException {
-        if (secondaryImages == null || secondaryImages.isEmpty()) {
-            return new ArrayList<>();
+    public Resource loadVariationPrimaryImage(Long productId, Long variationId) throws IOException {
+        Path variationImagesPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(productId))
+                .resolve("variations");
+
+        if (!Files.exists(variationImagesPath) || !Files.isDirectory(variationImagesPath)) {
+            throw new FileNotFoundException("Image directory not found for product: " + productId);
         }
 
-        List<String> savedImageNames = new ArrayList<>();
-        int imageCounter = 1;
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(variationImagesPath, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(variationId + "."))
+                    .findFirst();
+        }
 
+        if (foundFile.isPresent()) {
+            Path filePath = foundFile.get();
+            try {
+                Resource resource = new UrlResource(filePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    return resource;
+                } else {
+                    throw new IOException("Could not read file: " + filePath);
+                }
+            } catch (MalformedURLException ex) {
+                throw new IOException("Could not form URL for file: " + filePath, ex);
+            }
+        } else {
+            throw new FileNotFoundException("Primary image not found for product variation: " + variationId);
+        }
+    }
+
+    @Override
+    public void saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException {
+        if (secondaryImages == null || secondaryImages.isEmpty()) {
+            return;
+        }
+
+        int imageCounter = 1;
         for (MultipartFile image : secondaryImages) {
             String fileName = variation.getId() + "_" + imageCounter++;
-            String savedFileName = saveVariationImage(variation, image, fileName);
-            savedImageNames.add(savedFileName);
+            saveVariationImage(variation, image, fileName);
         }
-        return savedImageNames;
     }
 
     private String saveVariationImage(ProductVariation variation, MultipartFile image, String fileNameWithoutExtension) throws IOException {
@@ -138,9 +172,10 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public Optional<Path> fileExists(Long userId) throws IOException {
-        return Files.walk(userImageStorageLocation, 1)
-                .filter(path -> path.getFileName().toString().startsWith(userId + "."))
-                .findFirst();
+        try (Stream<Path> files = Files.walk(userImageStorageLocation, 1)) {
+            return files.filter(path -> path.getFileName().toString().startsWith(userId + "."))
+                    .findFirst();
+        }
     }
 
     private void deleteExistingFile(Long userId) throws IOException {

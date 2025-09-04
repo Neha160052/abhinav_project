@@ -78,7 +78,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         if (file != null && !file.isEmpty()) {
             try {
-                imageService.save(file, newCustomer.getId());
+                imageService.saveUserProfileImage(file, newCustomer.getId());
             } catch (IOException e) {
                 throw new RuntimeException("Failed to store profile picture for user " + customer.getId(), e);
             }

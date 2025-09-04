@@ -5,6 +5,7 @@ import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
+import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,4 +28,6 @@ public interface ProductService {
     String deactivateProduct(long id);
 
     void addProductVariation(long id, AddProductVariationCO addProductVariationCO, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException;
+
+    SellerProductVariationDetailsVO getProductVariation(long id);
 }
