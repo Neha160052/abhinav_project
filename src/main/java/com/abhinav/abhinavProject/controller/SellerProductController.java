@@ -4,6 +4,7 @@ import com.abhinav.abhinavProject.co.AddProductCO;
 import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.exception.ApiResponse;
+import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
@@ -12,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,12 +44,9 @@ public class SellerProductController {
 
     @GetMapping()
     public ResponseEntity<PageResponseVO<List<SellerProductDetailsVO>>> getAllProducts(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "id") String sort,
-            @RequestParam(defaultValue = "asc") String order,
+            @PageableDefault(sort = "id") Pageable pageable,
             @RequestParam(required = false) String query) {
-        PageResponseVO<List<SellerProductDetailsVO>> products = productService.getAllProducts(page, size, sort, order, query);
+        PageResponseVO<List<SellerProductDetailsVO>> products = productService.getAllProducts(query, pageable);
         return ResponseEntity.ok(products);
     }
 
@@ -86,5 +86,14 @@ public class SellerProductController {
     public ResponseEntity<SellerProductVariationDetailsVO> getProductVariation(@PathVariable long id) {
         SellerProductVariationDetailsVO product = productService.getProductVariation(id);
         return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/{id}/variation")
+    public ResponseEntity<PageResponseVO<List<SellerProductVariationDetailsVO>>> getAllProductVariation(
+            @PathVariable Long id,
+            @PageableDefault(sort = "id") Pageable pageable,
+            @ModelAttribute ProductVariationFilter filter
+    ) {
+        return ResponseEntity.ok(productService.getAllProductVariation(id, filter, pageable));
     }
 }

@@ -2,6 +2,7 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.service.ImageService;
+import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,6 +84,9 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public String saveVariationPrimaryImage(ProductVariation variation, MultipartFile primaryImage) throws IOException {
+        if (primaryImage == null || primaryImage.isEmpty()) {
+            throw new ValidationException("Primary Image is needed to add Product Variation");
+        }
         String fileName = String.valueOf(variation.getId());
         return saveVariationImage(variation, primaryImage, fileName);
     }

@@ -9,11 +9,13 @@ import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.exception.*;
+import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.specification.ProductSpecification;
+import com.abhinav.abhinavProject.specification.ProductVariationSpecification;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
@@ -23,9 +25,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -98,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = {ValidationException.class, IOException.class})
     public void addProductVariation(long id, AddProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException {
         Seller seller = getSellerFromContext();
         Product product = getProductEntity(id);
@@ -148,11 +148,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(Integer page, Integer size, String sort, String order, String query) {
+    public PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(String query, Pageable pageable) {
         Seller seller = getSellerFromContext();
-
-        Sort.Direction direction = "asc".equalsIgnoreCase(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
 
         Specification<Product> spec = ProductSpecification.hasSellerId(seller.getId());
 
@@ -171,6 +168,39 @@ public class ProductServiceImpl implements ProductService {
                 productPage.getSize(),
                 productPage.hasNext(),
                 productDetailsVOS
+        );
+    }
+
+    @Override
+    public PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long productId, ProductVariationFilter filter, Pageable pageable) {
+        Seller seller = getSellerFromContext();
+        Product product = getProductEntity(productId);
+        if (product.isDeleted()) {
+            throw new ProductVariationNotFoundException(messageUtil.getMessage("product.notFound", productId));
+        }
+
+        Specification<ProductVariation> spec = ProductVariationSpecification
+                .hasSellerId(seller.getId())
+                .and(ProductVariationSpecification.hasProductId(productId));
+        if (nonNull(filter.getQuantity()))
+            spec = spec.and(ProductVariationSpecification.quantityAvailable(filter.getQuantity()));
+        if (nonNull(filter.getPrice()))
+            spec = spec.and(ProductVariationSpecification.priceEquals(filter.getPrice()));
+        if (nonNull(filter.getIsActive()))
+            spec = spec.and(ProductVariationSpecification.isVariationActive(filter.getIsActive()));
+
+        Page<ProductVariation> variationPage = productVariationRepository.findAll(spec, pageable);
+
+        List<SellerProductVariationDetailsVO> variationVOs = variationPage.getContent().stream()
+                .map(SellerProductVariationDetailsVO::new)
+                .map(this::setPrimaryImage)
+                .toList();
+
+        return new PageResponseVO<>(
+                variationPage.getNumber(),
+                variationPage.getSize(),
+                variationPage.hasNext(),
+                variationVOs
         );
     }
 
