@@ -18,9 +18,7 @@ import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.specification.ProductSpecification;
 import com.abhinav.abhinavProject.specification.ProductVariationSpecification;
 import com.abhinav.abhinavProject.utils.MessageUtil;
-import com.abhinav.abhinavProject.vo.PageResponseVO;
-import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
-import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
+import com.abhinav.abhinavProject.vo.*;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -168,13 +166,40 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public SellerProductDetailsVO getProduct(long id) {
+    public SellerProductDetailsVO getSellerProduct(long id) {
         Seller seller = getSellerFromContext();
         Product product = getProductEntity(id);
 
         validateOwnership(product, seller);
 
         return new SellerProductDetailsVO(product);
+    }
+
+    @Override
+    public CustomerProductDetailsVO getCustomerProduct(long id) {
+        Product product = getProductEntity(id);
+
+        if (!product.isActive()) {
+            throw new ProductNotFoundException(messageUtil.getMessage("product.notFound", id));
+        }
+
+        List<ProductVariation> activeVariations = product.getVariations().stream()
+                .filter(ProductVariation::isActive)
+                .toList();
+
+        if (activeVariations.isEmpty()) {
+            throw new ValidationException(messageUtil.getMessage("product.variation.noneActive"));
+        }
+
+        CustomerProductDetailsVO productDetailsVO = new CustomerProductDetailsVO(product);
+
+        List<CustomerProductVariationDetailsVO> variationVOs = activeVariations.stream()
+                .map(this::mapToCustomerProductVariationVO)
+                .toList();
+
+        productDetailsVO.setProductVariations(variationVOs);
+
+        return productDetailsVO;
     }
 
     @Override
@@ -340,14 +365,30 @@ public class ProductServiceImpl implements ProductService {
 
     private SellerProductVariationDetailsVO setPrimaryImage(SellerProductVariationDetailsVO dto) {
         String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/static/")
-                .path("/product/")
+                .path("/static/product/")
                 .path(String.valueOf(dto.getProductDetails().getId()))
                 .path("/variation/")
                 .path(String.valueOf(dto.getId()))
                 .toUriString();
         dto.setPrimaryImage(uri);
         return dto;
+    }
+
+    private CustomerProductVariationDetailsVO mapToCustomerProductVariationVO(ProductVariation variation) {
+        CustomerProductVariationDetailsVO vo = new CustomerProductVariationDetailsVO(variation);
+        long productId = variation.getProduct().getId();
+        long variationId = variation.getId();
+
+        String primaryImageUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/static/product/")
+                .path(String.valueOf(productId))
+                .path("/variation/")
+                .path(String.valueOf(variationId))
+                .toUriString();
+        vo.setPrimaryImage(primaryImageUri);
+        // TODO set secondary images
+
+        return vo;
     }
 
     private void validateOwnership(Product product, Seller seller) {

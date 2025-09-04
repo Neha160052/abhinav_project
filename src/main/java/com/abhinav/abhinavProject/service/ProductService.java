@@ -5,6 +5,7 @@ import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
+import com.abhinav.abhinavProject.vo.CustomerProductDetailsVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
 import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
@@ -20,7 +21,7 @@ public interface ProductService {
 
     void updateProductVariation(long id, UpdateProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException;
 
-    SellerProductDetailsVO getProduct(long id);
+    SellerProductDetailsVO getSellerProduct(long id);
 
     PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(String query, Pageable pageable);
 
@@ -37,4 +38,6 @@ public interface ProductService {
     SellerProductVariationDetailsVO getProductVariation(long id);
 
     PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long id, ProductVariationFilter filter, Pageable pageable);
+
+    CustomerProductDetailsVO getCustomerProduct(long id);
 }
