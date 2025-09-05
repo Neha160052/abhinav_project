@@ -2,14 +2,18 @@ package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
-import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.AdminProductDetailsVO;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/product")
@@ -19,12 +23,21 @@ import org.springframework.web.bind.annotation.*;
 public class AdminProductController {
 
     ProductService productService;
-    MessageUtil messageUtil;
 
     @GetMapping("/{id}")
     public ResponseEntity<AdminProductDetailsVO> viewProduct(@PathVariable long id) {
         AdminProductDetailsVO productDetails = productService.getAdminProduct(id);
         return ResponseEntity.ok(productDetails);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponseVO<List<AdminProductDetailsVO>>> viewAllProducts(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long sellerId,
+            @PageableDefault(sort = "id") Pageable pageable) {
+        PageResponseVO<List<AdminProductDetailsVO>> products = productService.getAllAdminProducts(query, categoryId, sellerId, pageable);
+        return ResponseEntity.ok(products);
     }
 
     @PutMapping("/activate/{id}")

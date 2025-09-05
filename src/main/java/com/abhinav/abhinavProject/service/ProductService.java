@@ -42,4 +42,6 @@ public interface ProductService {
     PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable);
 
     AdminProductDetailsVO getAdminProduct(long id);
+
+    PageResponseVO<List<AdminProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable);
 }

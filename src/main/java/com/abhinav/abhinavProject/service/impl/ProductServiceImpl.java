@@ -390,6 +390,40 @@ public class ProductServiceImpl implements ProductService {
         return messageUtil.getMessage("product.deactivated.success");
     }
 
+    @Override
+    public PageResponseVO<List<AdminProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable) {
+        Specification<Product> spec = Specification.unrestricted();
+
+        if (nonNull(categoryId)) {
+            List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
+            if (categoryIds.isEmpty()) {
+                return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
+            }
+            spec = spec.and(ProductSpecification.hasCategoryIn(categoryIds));
+        }
+
+        if (nonNull(sellerId)) {
+            spec = spec.and(ProductSpecification.hasSellerId(sellerId));
+        }
+
+        if (hasText(query)) {
+            spec = spec.and(ProductSpecification.nameOrBrandContains(query));
+        }
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<AdminProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+                .map(this::mapToAdminProductDetailsVO)
+                .toList();
+
+        return new PageResponseVO<>(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.hasNext(),
+                productDetailsVOS
+        );
+    }
+
     private Seller getSellerFromContext() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return sellerRepository.findByUser_Email(principal.getUsername())
