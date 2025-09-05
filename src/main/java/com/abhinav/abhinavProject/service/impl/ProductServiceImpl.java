@@ -283,6 +283,44 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public PageResponseVO<List<CustomerProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable) {
+        Product product = getProductEntity(id);
+        Category productCategory = product.getCategory();
+        Category parentCategory = productCategory.getParentCategory();
+
+        if (parentCategory == null) {
+            return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
+        }
+
+        List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(parentCategory.getId());
+        if (categoryIds.isEmpty()) {
+            return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
+        }
+
+        Specification<Product> spec = ProductSpecification.isActive()
+                .and(ProductSpecification.hasActiveVariations())
+                .and(ProductSpecification.hasCategoryIn(categoryIds))
+                .and(ProductSpecification.idNotEquals(id));
+
+        if (hasText(query)) {
+            spec = spec.and(ProductSpecification.nameOrBrandContains(query));
+        }
+
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        List<CustomerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+                .map(this::mapToCustomerProductDetailsVO)
+                .toList();
+
+        return new PageResponseVO<>(
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.hasNext(),
+                productDetailsVOS
+        );
+    }
+
+    @Override
     public PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long productId, ProductVariationFilter filter, Pageable pageable) {
         Seller seller = getSellerFromContext();
         Product product = getProductEntity(productId);

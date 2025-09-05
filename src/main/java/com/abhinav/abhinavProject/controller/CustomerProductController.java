@@ -47,4 +47,13 @@ public class CustomerProductController {
         return ResponseEntity.ok(products);
     }
 
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<PageResponseVO<List<CustomerProductDetailsVO>>> getSimilarProducts(
+            @PathVariable long id,
+            @RequestParam(required = false) String query,
+            @PageableDefault(sort = "id") Pageable pageable) {
+        PageResponseVO<List<CustomerProductDetailsVO>> products = productService.getSimilarProducts(id, query, pageable);
+        return ResponseEntity.ok(products);
+    }
+
 }

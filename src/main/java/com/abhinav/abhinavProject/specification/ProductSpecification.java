@@ -13,6 +13,10 @@ import java.util.Map;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductSpecification {
 
+    public static Specification<Product> idNotEquals(long productId) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("id"), productId);
+    }
+
     public static Specification<Product> hasSellerId(Long sellerId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("seller").get("id"), sellerId);

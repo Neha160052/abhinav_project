@@ -44,4 +44,6 @@ public interface ProductService {
     AdminProductDetailsVO getAdminProduct(long id);
 
     PageResponseVO<List<AdminProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable);
+
+    PageResponseVO<List<CustomerProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable);
 }
