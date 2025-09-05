@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface CategoryMetadataFieldValuesRepository extends JpaRepository<CategoryMetadataFieldValues, Long> {
     List<CategoryMetadataFieldValues> findByCategory_Id(long id);
     Optional<CategoryMetadataFieldValues> findByCategory_IdAndCategoryMetadataField_Id(long categoryId, long metadataFieldId);
+    List<CategoryMetadataFieldValues> findByCategory_IdIn(List<Long> categoryIds);
 }

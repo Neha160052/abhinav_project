@@ -9,10 +9,7 @@ import com.abhinav.abhinavProject.entity.category.CategoryMetadataField;
 import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
 import com.abhinav.abhinavProject.exception.MetadataFieldNotFoundException;
-import com.abhinav.abhinavProject.repository.CategoryMetadataFieldRepository;
-import com.abhinav.abhinavProject.repository.CategoryMetadataFieldValuesRepository;
-import com.abhinav.abhinavProject.repository.CategoryRepository;
-import com.abhinav.abhinavProject.repository.ProductRepository;
+import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
@@ -38,6 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     CategoryMetadataFieldValuesRepository fieldValuesRepository;
     ProductRepository productRepository;
     MessageUtil messageUtil;
+    private final ProductVariationRepository productVariationRepository;
 
     @Override
     public CategoryDetailsVO addNewCategory(NewCategoryCO newCategoryCO) {
@@ -210,6 +208,40 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public CategoryDetailsVO getCustomerCategoryDetails(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id)));
+
+        CategoryDetailsVO responseVO = new CategoryDetailsVO(category);
+
+        List<Long> leafIds = getDescendantLeafCategoryIds(id);
+        if (leafIds.isEmpty()) {
+            leafIds.add(id);
+        }
+
+        Map<String, Set<String>> aggregatedMetadata = new HashMap<>();
+        List<CategoryMetadataFieldValues> fieldValues = fieldValuesRepository.findByCategory_IdIn(leafIds);
+        for (CategoryMetadataFieldValues fieldValue : fieldValues) {
+            String fieldName = fieldValue.getCategoryMetadataField().getName();
+            aggregatedMetadata.computeIfAbsent(fieldName, k -> new HashSet<>())
+                    .addAll(fieldValue.getValuesList());
+        }
+
+        responseVO.setFieldAndValues(aggregatedMetadata.entrySet().stream()
+                .map(entry -> new CategoryMetadataFieldAndValuesVO(entry.getKey(), entry.getValue()))
+                .toList());
+
+        List<String> brands = productRepository.findDistinctBrandsByCategoryIds(leafIds);
+        responseVO.setBrands(brands);
+
+        Object[][] prices = productVariationRepository.findPriceRangeByCategoryIds(leafIds);
+        responseVO.setMinPrice((double) prices[0][0]);
+        responseVO.setMaxPrice((double) prices[0][1]);
+
+        return responseVO;
+    }
+
+    @Override
     public List<Long> getDescendantLeafCategoryIds(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", categoryId)));
@@ -218,6 +250,7 @@ public class CategoryServiceImpl implements CategoryService {
         findLeafCategoriesRecursive(category, leafCategoryIds);
         return leafCategoryIds;
     }
+
 
     private void findLeafCategoriesRecursive(Category category, List<Long> leafCategoryIds) {
         List<Category> children = categoryRepository.findByParentCategory_Id(category.getId());
@@ -229,7 +262,6 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
     }
-
 
     private CategoryDetailsVO buildCategoryDetailsVO(Category category) {
         // get list of ancestors

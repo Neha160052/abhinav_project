@@ -97,4 +97,9 @@ public class CustomerController {
     public ResponseEntity<CategoryDetailsVO> getAllCustomerCategories(@RequestParam(name = "id", required = false) Long id) {
         return ResponseEntity.ok(categoryService.getAllCustomerCategories(id));
     }
+
+    @GetMapping("/category/filters/{id}")
+    public ResponseEntity<CategoryDetailsVO> getCategoryDetailsForCustomer(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCustomerCategoryDetails(id));
+    }
 }

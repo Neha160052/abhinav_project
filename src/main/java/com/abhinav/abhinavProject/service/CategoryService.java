@@ -27,5 +27,7 @@ public interface CategoryService {
 
     CategoryDetailsVO getAllCustomerCategories(Long id);
 
+    CategoryDetailsVO getCustomerCategoryDetails(Long id);
+
     List<Long> getDescendantLeafCategoryIds(Long categoryId);
 }

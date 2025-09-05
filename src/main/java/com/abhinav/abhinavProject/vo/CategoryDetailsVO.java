@@ -21,6 +21,9 @@ public class CategoryDetailsVO {
     List<CategoryDetailsVO> parentCategoryPath;
     List<CategoryDetailsVO> childrenCategories;
     List<CategoryMetadataFieldAndValuesVO> fieldAndValues;
+    List<String> brands;
+    Double minPrice;
+    Double maxPrice;
 
     public CategoryDetailsVO(Category category) {
         this.id = category.getId();
