@@ -78,7 +78,7 @@ public class CustomerServiceImpl implements CustomerService {
         generateNewActivationTokenAndSendEmail(customer);
     }
 
-    private Customer generateNewActivationTokenAndSendEmail(Customer customer) {
+    private void generateNewActivationTokenAndSendEmail(Customer customer) {
         ActivationToken activationToken = new ActivationToken();
 
         activationToken.setToken(UUID.randomUUID().toString());
@@ -92,35 +92,32 @@ public class CustomerServiceImpl implements CustomerService {
         emailServiceImpl.sendActivationEmail(savedCustomer.getUser().getFirstName(),
                 savedCustomer.getUser().getEmail(),
                 savedCustomer.getActivationToken().getToken());
-
-        return savedCustomer;
     }
 
     public void activateCustomerAccount(String token) {
         Customer customer = customerRepository.findByActivationToken_Token(token);
 
         if (customer == null) {
-            throw new InvalidTokenException("Invalid activation token provided");
+            throw new InvalidTokenException(messageUtil.getMessage("activation.token.invalid"));
         }
 
         if (customer.getUser().isActive()) {
-            throw new AccountActiveException("Customer account is already activated");
+            throw new AccountActiveException(messageUtil.getMessage("account.active"));
         }
 
-        if (customer.getActivationToken()
-                .getExpiration()
-                .isBefore(LocalDateTime.now())
+        if (customer.getActivationToken()==null || customer.getActivationToken().getExpiration().isBefore(LocalDateTime.now())
         ) {
             generateNewActivationTokenAndSendEmail(customer);
-            throw new TokenExpiredException("Activation code expired. New activation link has been emailed.");
+            throw new TokenExpiredException(messageUtil.getMessage("activation.token.expired"));
         }
 
         User customerUser = customer.getUser();
         customerUser.setActive(true);
         customer.setUser(customerUser);
         customer.setActivationToken(null);
-
         customerRepository.save(customer);
+
+        emailServiceImpl.sendCustomerActivatedEmail(customer);
     }
 
     public void resendActivationCode(String email) {

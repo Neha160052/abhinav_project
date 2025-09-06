@@ -2,6 +2,7 @@ package com.abhinav.abhinavProject.service.impl;
 
 import com.abhinav.abhinavProject.config.AdminProps;
 import com.abhinav.abhinavProject.entity.product.Product;
+import com.abhinav.abhinavProject.entity.user.Customer;
 import com.abhinav.abhinavProject.entity.user.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,14 @@ public class EmailServiceImpl {
                 toMail,
                 "Activate your account",
                 "Hi " + firstName + ",\nPlease activate your account by clicking the link below:\n\nhttp://localhost:8080/api/customer/activate?token=" + token
+        );
+    }
+
+    public void sendCustomerActivatedEmail(Customer customer) {
+        sendMail(
+                customer.getUser().getEmail(),
+                "Account activated successfully",
+                "Hi " + customer.getUser().getFirstName() + ",\nYour Account has been activated successfully!"
         );
     }
 
