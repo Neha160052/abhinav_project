@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -61,6 +63,11 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                if (!userDetails.isAccountNonLocked()) {
+                    throw new LockedException("User account is locked.");
+                }
+
                 String refreshTokenJti = jwtService.extractRefreshTokenJti(token);
 
                 if (jwtService.validateToken(token, userDetails) &&
@@ -77,7 +84,12 @@ public class JwtSecurityFilter extends OncePerRequestFilter {
             authenticationEntryPoint.commence(request, response,
                     new InsufficientAuthenticationException("Invalid JWT: " + ex.getMessage(), ex));
             return;
+        } catch (AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            authenticationEntryPoint.commence(request, response, ex);
+            return;
         }
+
 
         filterChain.doFilter(request, response);
     }

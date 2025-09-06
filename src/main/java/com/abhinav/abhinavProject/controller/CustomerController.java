@@ -60,8 +60,7 @@ public class CustomerController {
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse> updateCustomerProfile(@RequestBody @Valid CustomerProfileUpdateCO customerProfileUpdateCO) {
         customerService.updateCustomerDetails(customerProfileUpdateCO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(messageUtil.getMessage("profile.updated")));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("profile.updated")));
     }
 
     @PatchMapping("/update-password")

@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +36,7 @@ public class SellerController {
     public ResponseEntity<ApiResponse> registerNewSeller(@RequestBody @Valid SellerRegisterCO sellerRegisterCO) {
         sellerService.registerSeller(sellerRegisterCO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(messageUtil.getMessage("seller.register.success")));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("seller.register.success")));
     }
 
     @GetMapping("/profile")
@@ -48,7 +47,7 @@ public class SellerController {
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse> updateSellerProfile(@RequestBody @Valid SellerProfileUpdateCO sellerProfileUpdateCO) {
         sellerService.updateSellerDetails(sellerProfileUpdateCO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(messageUtil.getMessage("profile.updated")));
+        return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("profile.updated")));
     }
 
     @PatchMapping("/update-password")
