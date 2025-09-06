@@ -40,12 +40,12 @@ public class BootstrapRunner implements CommandLineRunner {
             }
         }
 
-        Optional<User> adminOptional = userRepository.findByEmail(adminProps.getEmail());
+        Role adminRole = roleRepository.findByAuthority("ROLE_ADMIN")
+                .orElseThrow(() -> new RoleNotFoundException("Role not found"));
+
+        Optional<User> adminOptional = userRepository.findByRole(adminRole);
 
         if (adminOptional.isEmpty()) {
-            Role adminRole = roleRepository.findByAuthority("ROLE_ADMIN")
-                    .orElseThrow(() -> new RoleNotFoundException("Role not found"));
-
             User admin = new User();
             admin.setFirstName(adminProps.getFirstname());
             admin.setLastName(adminProps.getLastname());

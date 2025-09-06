@@ -60,10 +60,6 @@ public class User {
     @JsonManagedReference
     Set<Address> address = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    PasswordResetToken passwordResetToken;
-
     @Embedded
     AuditData auditData = new AuditData();
 

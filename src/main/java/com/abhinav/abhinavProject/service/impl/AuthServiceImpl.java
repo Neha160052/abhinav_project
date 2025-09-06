@@ -7,6 +7,7 @@ import com.abhinav.abhinavProject.entity.user.PasswordResetToken;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.exception.*;
 import com.abhinav.abhinavProject.repository.BlacklistTokensRepository;
+import com.abhinav.abhinavProject.repository.PasswordResetTokenRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.AuthService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     BlacklistTokensRepository blacklistTokensRepository;
     PasswordEncoder passwordEncoder;
     MessageUtil messageUtil;
+    PasswordResetTokenRepository passwordResetTokenRepository;
 
     public String[] loginUser(LoginRequestCO loginRequestCO) {
         Authentication authentication = authenticationManager.authenticate(
@@ -66,13 +69,11 @@ public class AuthServiceImpl implements AuthService {
         passwordResetToken.setUser(user);
         passwordResetToken.setExpiration(LocalDateTime.now().plusHours(3));
 
-        user.setPasswordResetToken(passwordResetToken);
+        PasswordResetToken savedToken = passwordResetTokenRepository.save(passwordResetToken);
 
-        User savedUser = userRepository.save(user);
-
-        emailServiceImpl.sendPasswordResetEmail(savedUser.getFirstName(),
-                savedUser.getEmail(),
-                savedUser.getPasswordResetToken().getToken());
+        emailServiceImpl.sendPasswordResetEmail(user.getFirstName(),
+                user.getEmail(),
+                savedToken.getToken());
     }
 
     public void sendResetPasswordLink(String email) {
@@ -83,10 +84,11 @@ public class AuthServiceImpl implements AuthService {
             throw new AccountInactiveException(messageUtil.getMessage("account.inactive"));
         }
 
-        if (user.getPasswordResetToken() != null) {
+        Optional<PasswordResetToken> existingToken = passwordResetTokenRepository.findById(user.getId());
+        if (existingToken.isPresent()) {
             emailServiceImpl.sendPasswordResetEmail(user.getFirstName(),
                     user.getEmail(),
-                    user.getPasswordResetToken().getToken());
+                    existingToken.get().getToken());
             return;
         }
 
@@ -98,21 +100,18 @@ public class AuthServiceImpl implements AuthService {
         if (!resetPasswordCO.getPassword().equals(resetPasswordCO.getConfirmPassword())) {
             throw new PasswordMismatchException(messageUtil.getMessage("password.mismatch"));
         }
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidTokenException(messageUtil.getMessage("pass.reset.token.invalid")));
+        User user = passwordResetToken.getUser();
 
-        User user = userRepository.findByPasswordResetToken_Token(token);
-        if (user == null) {
-            throw new InvalidTokenException(messageUtil.getMessage("pass.reset.token.invalid"));
-        }
-
-        if (user.getPasswordResetToken()
-                .getExpiration()
-                .isBefore(LocalDateTime.now())
+        if (passwordResetToken.getExpiration().isBefore(LocalDateTime.now())
         ) {
+            passwordResetTokenRepository.delete(passwordResetToken);
             generateNewPasswordResetTokenAndSendEmail(user);
             throw new TokenExpiredException(messageUtil.getMessage("pass.reset.token.expired"));
         }
 
-        user.setPasswordResetToken(null);
+        passwordResetTokenRepository.delete(passwordResetToken);
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
         userRepository.save(user);

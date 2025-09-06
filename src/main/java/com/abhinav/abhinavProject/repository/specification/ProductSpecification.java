@@ -1,4 +1,4 @@
-package com.abhinav.abhinavProject.specification;
+package com.abhinav.abhinavProject.repository.specification;
 
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
