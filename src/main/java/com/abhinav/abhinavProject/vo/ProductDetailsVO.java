@@ -1,6 +1,7 @@
 package com.abhinav.abhinavProject.vo;
 
 import com.abhinav.abhinavProject.entity.product.Product;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,17 +14,20 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CustomerProductDetailsVO {
-    long id;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ProductDetailsVO {
+    Long id;
     String name;
     String brand;
     String description;
-    boolean isCancellable;
-    boolean isReturnable;
+    Boolean isCancellable;
+    Boolean isReturnable;
+    Boolean isActive;
+    Boolean isDeleted;
     CategoryDetailsVO category;
-    List<CustomerProductVariationDetailsVO> productVariations;
+    List<ProductVariationDetailsVO> productVariations;
 
-    public CustomerProductDetailsVO(Product product) {
+    public ProductDetailsVO(Product product) {
         this.id = product.getId();
         this.name = product.getName();
         this.brand = product.getBrand();

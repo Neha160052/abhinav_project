@@ -19,7 +19,9 @@ import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
-import com.abhinav.abhinavProject.vo.*;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
+import com.abhinav.abhinavProject.vo.ProductDetailsVO;
+import com.abhinav.abhinavProject.vo.ProductVariationDetailsVO;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -170,17 +172,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public SellerProductDetailsVO getSellerProduct(long id) {
+    public ProductDetailsVO getSellerProduct(long id) {
         Seller seller = getSellerFromContext();
         Product product = getProductEntity(id);
 
         validateOwnership(product, seller);
-
-        return new SellerProductDetailsVO(product);
+        ProductDetailsVO productDetailsVO = new ProductDetailsVO(product);
+        productDetailsVO.setIsActive(product.isActive());
+        return productDetailsVO;
     }
 
     @Override
-    public CustomerProductDetailsVO getCustomerProduct(long id) {
+    public ProductDetailsVO getCustomerProduct(long id) {
         Product product = getProductEntity(id);
 
         if (!product.isActive()) {
@@ -195,9 +198,9 @@ public class ProductServiceImpl implements ProductService {
             throw new ValidationException(messageUtil.getMessage("product.variation.noneActive"));
         }
 
-        CustomerProductDetailsVO productDetailsVO = new CustomerProductDetailsVO(product);
+        ProductDetailsVO productDetailsVO = new ProductDetailsVO(product);
 
-        List<CustomerProductVariationDetailsVO> variationVOs = activeVariations.stream()
+        List<ProductVariationDetailsVO> variationVOs = activeVariations.stream()
                 .map(this::mapToCustomerProductVariationVO)
                 .toList();
 
@@ -207,27 +210,33 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public AdminProductDetailsVO getAdminProduct(long id) {
+    public ProductDetailsVO getAdminProduct(long id) {
         Product product = productRepository.findByIdAdmin(id)
                 .orElseThrow(()-> new ProductNotFoundException(messageUtil.getMessage("product.notFound", id)));
         return mapToAdminProductDetailsVO(product);
     }
 
     @Override
-    public SellerProductVariationDetailsVO getProductVariation(long id) {
+    public ProductVariationDetailsVO getSellerProductVariation(long id) {
         Seller seller = getSellerFromContext();
         ProductVariation productVar = getProductVariationEntity(id);
+        Product product = productVar.getProduct();
 
-        validateOwnership(productVar.getProduct(), seller);
-        if (productVar.getProduct().isDeleted()) {
+        validateOwnership(product, seller);
+        if (product.isDeleted()) {
             throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
         }
+        ProductDetailsVO productVo= new ProductDetailsVO(product);
+        productVo.setIsActive(productVar.isActive());
 
-        return setPrimaryImage(new SellerProductVariationDetailsVO(productVar));
+        ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
+        vo.setIsActive(productVar.isActive());
+        vo.setProductDetails(productVo);
+        return setPrimaryImage(vo);
     }
 
     @Override
-    public PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(String query, Pageable pageable) {
+    public PageResponseVO<List<ProductDetailsVO>> getAllSellerProducts(String query, Pageable pageable) {
         Seller seller = getSellerFromContext();
 
         Specification<Product> spec = ProductSpecification.hasSellerId(seller.getId());
@@ -238,8 +247,12 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
-        List<SellerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
-                .map(SellerProductDetailsVO::new)
+        List<ProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+                .map(product -> {
+                    ProductDetailsVO vo = new ProductDetailsVO(product);
+                    vo.setIsActive(product.isActive());
+                    return vo;
+                })
                 .toList();
 
         return new PageResponseVO<>(
@@ -251,7 +264,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable) {
+    public PageResponseVO<List<ProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable) {
         List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
         if (categoryIds.isEmpty()) {
             return new PageResponseVO<>(pageable.getPageNumber(), pageable.getPageSize(), false, Collections.emptyList());
@@ -270,7 +283,7 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
-        List<CustomerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+        List<ProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
                 .map(this::mapToCustomerProductDetailsVO)
                 .toList();
 
@@ -283,7 +296,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<CustomerProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable) {
+    public PageResponseVO<List<ProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable) {
         Product product = getProductEntity(id);
         Category productCategory = product.getCategory();
         Category parentCategory = productCategory.getParentCategory();
@@ -308,7 +321,7 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
-        List<CustomerProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+        List<ProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
                 .map(this::mapToCustomerProductDetailsVO)
                 .toList();
 
@@ -321,7 +334,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long productId, ProductVariationFilter filter, Pageable pageable) {
+    public PageResponseVO<List<ProductVariationDetailsVO>> getAllSellerProductVariation(Long productId, ProductVariationFilter filter, Pageable pageable) {
         Seller seller = getSellerFromContext();
         Product product = getProductEntity(productId);
         if (product.isDeleted()) {
@@ -340,9 +353,17 @@ public class ProductServiceImpl implements ProductService {
 
         Page<ProductVariation> variationPage = productVariationRepository.findAll(spec, pageable);
 
-        List<SellerProductVariationDetailsVO> variationVOs = variationPage.getContent().stream()
-                .map(SellerProductVariationDetailsVO::new)
-                .map(this::setPrimaryImage)
+        List<ProductVariationDetailsVO> variationVOs = variationPage.getContent().stream()
+                .map(productVar -> {
+                    Product prod = productVar.getProduct();
+                    ProductDetailsVO productVo= new ProductDetailsVO(prod);
+                    productVo.setIsActive(productVar.isActive());
+
+                    ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
+                    vo.setIsActive(productVar.isActive());
+                    vo.setProductDetails(productVo);
+                    return setPrimaryImage(vo);
+                })
                 .toList();
 
         return new PageResponseVO<>(
@@ -429,7 +450,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PageResponseVO<List<AdminProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable) {
+    public PageResponseVO<List<ProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable) {
         Specification<Product> spec = Specification.unrestricted();
 
         if (nonNull(categoryId)) {
@@ -450,7 +471,7 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
-        List<AdminProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
+        List<ProductDetailsVO> productDetailsVOS = productPage.getContent().stream()
                 .map(this::mapToAdminProductDetailsVO)
                 .toList();
 
@@ -478,7 +499,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id)));
     }
 
-    private SellerProductVariationDetailsVO setPrimaryImage(SellerProductVariationDetailsVO dto) {
+    private ProductVariationDetailsVO setPrimaryImage(ProductVariationDetailsVO dto) {
         String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/static/product/")
                 .path(String.valueOf(dto.getProductDetails().getId()))
@@ -489,30 +510,20 @@ public class ProductServiceImpl implements ProductService {
         return dto;
     }
 
-    private CustomerProductVariationDetailsVO mapToCustomerProductVariationVO(ProductVariation variation) {
-        CustomerProductVariationDetailsVO vo = new CustomerProductVariationDetailsVO(variation);
-        long productId = variation.getProduct().getId();
-        long variationId = variation.getId();
-
-        String primaryImageUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/static/product/")
-                .path(String.valueOf(productId))
-                .path("/variation/")
-                .path(String.valueOf(variationId))
-                .toUriString();
-        vo.setPrimaryImage(primaryImageUri);
+    private ProductVariationDetailsVO mapToCustomerProductVariationVO(ProductVariation variation) {
+        ProductVariationDetailsVO vo = new ProductVariationDetailsVO(variation);
+        setPrimaryImage(vo);
         // TODO set secondary images
-
         return vo;
     }
 
-    private CustomerProductDetailsVO mapToCustomerProductDetailsVO(Product product) {
-        CustomerProductDetailsVO productDetailsVO = new CustomerProductDetailsVO(product);
+    private ProductDetailsVO mapToCustomerProductDetailsVO(Product product) {
+        ProductDetailsVO productDetailsVO = new ProductDetailsVO(product);
         List<ProductVariation> activeVariations = product.getVariations().stream()
                 .filter(ProductVariation::isActive)
                 .toList();
 
-        List<CustomerProductVariationDetailsVO> variationVOs = activeVariations.stream()
+        List<ProductVariationDetailsVO> variationVOs = activeVariations.stream()
                 .map(this::mapToCustomerProductVariationVO)
                 .toList();
 
@@ -520,24 +531,21 @@ public class ProductServiceImpl implements ProductService {
         return productDetailsVO;
     }
 
-    private AdminProductDetailsVO mapToAdminProductDetailsVO(Product product) {
-        AdminProductDetailsVO vo = new AdminProductDetailsVO(product);
-        List<AdminProductVariationDetailsVO> variationVOs = product.getVariations().stream()
+    private ProductDetailsVO mapToAdminProductDetailsVO(Product product) {
+        ProductDetailsVO vo = new ProductDetailsVO(product);
+        vo.setIsActive(product.isActive());
+        vo.setIsDeleted(product.isDeleted());
+        List<ProductVariationDetailsVO> variationVOs = product.getVariations().stream()
                 .map(this::mapToAdminProductVariationDetailsVO)
                 .toList();
         vo.setProductVariations(variationVOs);
         return vo;
     }
 
-    private AdminProductVariationDetailsVO mapToAdminProductVariationDetailsVO(ProductVariation variation) {
-        AdminProductVariationDetailsVO vo = new AdminProductVariationDetailsVO(variation);
-        String primaryImageUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/static/product/")
-                .path(String.valueOf(variation.getProduct().getId()))
-                .path("/variation/")
-                .path(String.valueOf(variation.getId()))
-                .toUriString();
-        vo.setPrimaryImage(primaryImageUri);
+    private ProductVariationDetailsVO mapToAdminProductVariationDetailsVO(ProductVariation variation) {
+        ProductVariationDetailsVO vo = new ProductVariationDetailsVO(variation);
+        vo.setIsActive(variation.isActive());
+        setPrimaryImage(vo);
         return vo;
     }
 

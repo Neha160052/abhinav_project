@@ -7,27 +7,27 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SellerProductVariationDetailsVO {
-    long id;
-    SellerProductDetailsVO productDetails;
-    int quantityAvailable;
-    double price;
+public class ProductVariationDetailsVO {
+    Long id;
+    ProductDetailsVO productDetails;
+    Integer quantityAvailable;
+    Double price;
+    Boolean isActive;
     Map<String, String> metadata;
     String primaryImage;
-    boolean isActive;
+    List<String> secondaryImage;
 
-    public SellerProductVariationDetailsVO(ProductVariation pv) {
+    public ProductVariationDetailsVO(ProductVariation pv) {
         this.id = pv.getId();
-        this.productDetails = new SellerProductDetailsVO(pv.getProduct());
         this.quantityAvailable = pv.getQuantityAvailable();
         this.price = pv.getPrice();
         this.metadata = pv.getMetadata();
-        this.isActive = pv.isActive();
     }
 }

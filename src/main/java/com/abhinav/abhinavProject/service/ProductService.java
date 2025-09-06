@@ -5,7 +5,9 @@ import com.abhinav.abhinavProject.co.AddProductVariationCO;
 import com.abhinav.abhinavProject.co.UpdateProductCO;
 import com.abhinav.abhinavProject.co.UpdateProductVariationCO;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
-import com.abhinav.abhinavProject.vo.*;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
+import com.abhinav.abhinavProject.vo.ProductDetailsVO;
+import com.abhinav.abhinavProject.vo.ProductVariationDetailsVO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,9 +21,9 @@ public interface ProductService {
 
     void updateProductVariation(long id, UpdateProductVariationCO co, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException;
 
-    SellerProductDetailsVO getSellerProduct(long id);
+    ProductDetailsVO getSellerProduct(long id);
 
-    PageResponseVO<List<SellerProductDetailsVO>> getAllProducts(String query, Pageable pageable);
+    PageResponseVO<List<ProductDetailsVO>> getAllSellerProducts(String query, Pageable pageable);
 
     void deleteProduct(long id);
 
@@ -33,17 +35,17 @@ public interface ProductService {
 
     void addProductVariation(long id, AddProductVariationCO addProductVariationCO, MultipartFile primaryImage, List<MultipartFile> secondaryImages) throws IOException;
 
-    SellerProductVariationDetailsVO getProductVariation(long id);
+    ProductVariationDetailsVO getSellerProductVariation(long id);
 
-    PageResponseVO<List<SellerProductVariationDetailsVO>> getAllProductVariation(Long id, ProductVariationFilter filter, Pageable pageable);
+    PageResponseVO<List<ProductVariationDetailsVO>> getAllSellerProductVariation(Long id, ProductVariationFilter filter, Pageable pageable);
 
-    CustomerProductDetailsVO getCustomerProduct(long id);
+    ProductDetailsVO getCustomerProduct(long id);
 
-    PageResponseVO<List<CustomerProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable);
+    PageResponseVO<List<ProductDetailsVO>> getAllCustomerProducts(long categoryId, String query, Map<String, String> metadataFilters, Pageable pageable);
 
-    AdminProductDetailsVO getAdminProduct(long id);
+    ProductDetailsVO getAdminProduct(long id);
 
-    PageResponseVO<List<AdminProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable);
+    PageResponseVO<List<ProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable);
 
-    PageResponseVO<List<CustomerProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable);
+    PageResponseVO<List<ProductDetailsVO>> getSimilarProducts(long id, String query, Pageable pageable);
 }

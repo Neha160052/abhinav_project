@@ -8,8 +8,8 @@ import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.service.ProductService;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
-import com.abhinav.abhinavProject.vo.SellerProductDetailsVO;
-import com.abhinav.abhinavProject.vo.SellerProductVariationDetailsVO;
+import com.abhinav.abhinavProject.vo.ProductDetailsVO;
+import com.abhinav.abhinavProject.vo.ProductVariationDetailsVO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -44,17 +44,16 @@ public class SellerProductController {
     }
 
     @GetMapping()
-    public ResponseEntity<PageResponseVO<List<SellerProductDetailsVO>>> getAllProducts(
+    public ResponseEntity<PageResponseVO<List<ProductDetailsVO>>> getAllProducts(
             @PageableDefault(sort = "id") Pageable pageable,
             @RequestParam(required = false) String query) {
-        PageResponseVO<List<SellerProductDetailsVO>> products = productService.getAllProducts(query, pageable);
+        PageResponseVO<List<ProductDetailsVO>> products = productService.getAllSellerProducts(query, pageable);
         return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SellerProductDetailsVO> getProduct(@PathVariable long id) {
-        SellerProductDetailsVO product = productService.getSellerProduct(id);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<ProductDetailsVO> getProduct(@PathVariable long id) {
+        return ResponseEntity.ok(productService.getSellerProduct(id));
     }
 
     @DeleteMapping("/{id}")
@@ -84,9 +83,8 @@ public class SellerProductController {
     }
 
     @GetMapping("/variation/{id}")
-    public ResponseEntity<SellerProductVariationDetailsVO> getProductVariation(@PathVariable long id) {
-        SellerProductVariationDetailsVO product = productService.getProductVariation(id);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<ProductVariationDetailsVO> getProductVariation(@PathVariable long id) {
+        return ResponseEntity.ok(productService.getSellerProductVariation(id));
     }
 
     @PatchMapping(value = "/variation/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -101,11 +99,11 @@ public class SellerProductController {
     }
 
     @GetMapping("/{id}/variation")
-    public ResponseEntity<PageResponseVO<List<SellerProductVariationDetailsVO>>> getAllProductVariation(
+    public ResponseEntity<PageResponseVO<List<ProductVariationDetailsVO>>> getAllProductVariation(
             @PathVariable Long id,
             @PageableDefault(sort = "id") Pageable pageable,
             @ModelAttribute ProductVariationFilter filter
     ) {
-        return ResponseEntity.ok(productService.getAllProductVariation(id, filter, pageable));
+        return ResponseEntity.ok(productService.getAllSellerProductVariation(id, filter, pageable));
     }
 }

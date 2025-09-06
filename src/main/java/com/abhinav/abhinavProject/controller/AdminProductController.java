@@ -2,8 +2,8 @@ package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.ProductService;
-import com.abhinav.abhinavProject.vo.AdminProductDetailsVO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
+import com.abhinav.abhinavProject.vo.ProductDetailsVO;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,19 +25,18 @@ public class AdminProductController {
     ProductService productService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<AdminProductDetailsVO> viewProduct(@PathVariable long id) {
-        AdminProductDetailsVO productDetails = productService.getAdminProduct(id);
+    public ResponseEntity<ProductDetailsVO> viewProduct(@PathVariable long id) {
+        ProductDetailsVO productDetails = productService.getAdminProduct(id);
         return ResponseEntity.ok(productDetails);
     }
 
     @GetMapping
-    public ResponseEntity<PageResponseVO<List<AdminProductDetailsVO>>> viewAllProducts(
+    public ResponseEntity<PageResponseVO<List<ProductDetailsVO>>> viewAllProducts(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long sellerId,
             @PageableDefault(sort = "id") Pageable pageable) {
-        PageResponseVO<List<AdminProductDetailsVO>> products = productService.getAllAdminProducts(query, categoryId, sellerId, pageable);
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getAllAdminProducts(query, categoryId, sellerId, pageable));
     }
 
     @PutMapping("/activate/{id}")
