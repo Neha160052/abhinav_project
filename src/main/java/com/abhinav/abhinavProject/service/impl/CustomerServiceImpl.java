@@ -3,10 +3,7 @@ package com.abhinav.abhinavProject.service.impl;
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.exception.*;
-import com.abhinav.abhinavProject.repository.AddressRepository;
-import com.abhinav.abhinavProject.repository.CustomerRepository;
-import com.abhinav.abhinavProject.repository.RoleRepository;
-import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.ImageService;
@@ -48,11 +45,17 @@ public class CustomerServiceImpl implements CustomerService {
     AddressRepository addressRepository;
     ImageService imageService;
     MessageUtil messageUtil;
+    SellerRepository sellerRepository;
 
     @Override
     public void registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
             throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
+        }
+
+        long contact = Long.parseLong(registerCO.getPhoneNumber());
+        if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+            throw new ValidationException(messageUtil.getMessage("contact.alreadyExists", contact));
         }
 
         if (!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
@@ -65,16 +68,15 @@ public class CustomerServiceImpl implements CustomerService {
         User user = new User();
         Customer customer = new Customer();
 
-        user.setEmail(registerCO.getEmail());
-        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
         user.setFirstName(registerCO.getFirstName());
-        if (registerCO.getMiddleName() != null)
-            user.setMiddleName(registerCO.getMiddleName());
+        user.setMiddleName(registerCO.getMiddleName());
         user.setLastName(registerCO.getLastName());
         user.setRole(customerRole);
+        user.setEmail(registerCO.getEmail());
+        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
 
         customer.setUser(user);
-        customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
+        customer.setContact(contact);
         generateNewActivationTokenAndSendEmail(customer);
     }
 
@@ -206,7 +208,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void addCustomerAddress(AddressDTO addressDTO) {
+    public void addCustomerAddress(AddressCO addressCO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -214,12 +216,12 @@ public class CustomerServiceImpl implements CustomerService {
         Address address = Address
                 .builder()
                 .user(user)
-                .city(addressDTO.getCity())
-                .state(addressDTO.getState())
-                .country(addressDTO.getCountry())
-                .addressLine(addressDTO.getAddressLine())
-                .zipCode(Integer.parseInt(addressDTO.getZipCode()))
-                .label(addressDTO.getLabel())
+                .city(addressCO.getCity())
+                .state(addressCO.getState())
+                .country(addressCO.getCountry())
+                .addressLine(addressCO.getAddressLine())
+                .zipCode(Integer.parseInt(addressCO.getZipCode()))
+                .label(addressCO.getLabel())
                 .build();
 
         user.getAddress().add(address);

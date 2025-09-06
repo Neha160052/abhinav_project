@@ -25,7 +25,7 @@ public interface CategoryService {
 
     PageResponseVO<List<CategoryDetailsVO>> getAllSellerCategories(Pageable pageable);
 
-    CategoryDetailsVO getAllCustomerCategories(Long id);
+    PageResponseVO<List<CategoryDetailsVO>> getAllCustomerCategories(Long id, Pageable pageable);
 
     CategoryDetailsVO getCustomerCategoryDetails(Long id);
 

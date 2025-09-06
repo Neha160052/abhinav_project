@@ -29,7 +29,7 @@ public interface CustomerService {
 
     Set<Address> getCustomerAddresses();
 
-    void addCustomerAddress(AddressDTO addressDTO);
+    void addCustomerAddress(AddressCO addressCO);
 
     void deleteCustomerAddress(long addressId);
 

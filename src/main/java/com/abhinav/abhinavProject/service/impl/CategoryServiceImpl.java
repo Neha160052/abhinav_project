@@ -191,20 +191,24 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDetailsVO getAllCustomerCategories(Long id) {
-        List<Category> categories;
+    public PageResponseVO<List<CategoryDetailsVO>> getAllCustomerCategories(Long id, Pageable pageable) {
+        Page<Category> categories;
         if (id == null) {
-            categories = categoryRepository.findByParentCategoryIsNull();
+            categories = categoryRepository.findByParentCategoryIsNull(pageable);
         } else {
             if (!categoryRepository.existsById(id)) {
                 throw new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id));
             }
-            categories = categoryRepository.findByParentCategory_Id(id);
+            categories = categoryRepository.findByParentCategory_Id(id, pageable);
         }
-        CategoryDetailsVO response = new CategoryDetailsVO();
-        response.setChildrenCategories(categories.stream().map(CategoryDetailsVO::new).toList());
 
-        return response;
+        List<CategoryDetailsVO> response = categories.getContent().stream().map(CategoryDetailsVO::new).toList();
+        return new PageResponseVO<>(
+                categories.getNumber(),
+                categories.getSize(),
+                categories.hasNext(),
+                response
+        );
     }
 
     @Override

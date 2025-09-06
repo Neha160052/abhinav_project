@@ -14,6 +14,7 @@ import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.SellerService;
 import com.abhinav.abhinavProject.service.UserService;
+import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import com.abhinav.abhinavProject.vo.SellerDetailsDTO;
 import jakarta.validation.ValidationException;
@@ -43,27 +44,31 @@ public class SellerServiceImpl implements SellerService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserService userService;
+    MessageUtil messageUtil;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
-            throw new ValidationException("Email Already Exists");
+            throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
 
         if(!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new PasswordMismatchException("Password mismatch");
+            throw new PasswordMismatchException(messageUtil.getMessage("password.mismatch"));
         }
 
         Role sellerRole = roleRepository.findByAuthority("ROLE_SELLER")
-                .orElseThrow(() -> new RoleNotFoundException("Role not found"));
+                .orElseThrow(() -> new RoleNotFoundException(messageUtil.getMessage("role.notFound")));
 
         User user = new User();
-        user.setEmail(registerCO.getEmail());
-        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
+        Seller newSeller = new Seller();
+        AddressCO companyAddress = registerCO.getCompanyAddress();
+
         user.setFirstName(registerCO.getFirstName());
+        user.setMiddleName(registerCO.getMiddleName());
         user.setLastName(registerCO.getLastName());
         user.setRole(sellerRole);
+        user.setEmail(registerCO.getEmail());
+        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
 
-        AddressDTO companyAddress = registerCO.getCompanyAddress();
         Address userAddress = Address.builder()
                 .city(companyAddress.getCity())
                 .state(companyAddress.getState())
@@ -76,7 +81,6 @@ public class SellerServiceImpl implements SellerService {
 
         user.setAddress(Set.of(userAddress));
 
-        Seller newSeller = new Seller();
         newSeller.setUser(user);
         newSeller.setCompanyName(registerCO.getCompanyName());
         newSeller.setCompanyContact(Long.parseLong(registerCO.getCompanyContact()));

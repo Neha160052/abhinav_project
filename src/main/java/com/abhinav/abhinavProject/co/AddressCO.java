@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AddressDTO {
+public class AddressCO {
 
         @NotBlank(message = "{address.city.required}")
         @Size(message = "{address.city.size}", min = 4, max = 15)

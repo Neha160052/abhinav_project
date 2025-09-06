@@ -14,6 +14,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByNameAndParentCategoryIsNull(String name);
 
     List<Category> findByParentCategory_Id(long id);
+    Page<Category> findByParentCategory_Id(long id, Pageable pageable);
 
     Optional<Category> findByNameAndParentCategory_Id(String name, long id);
 
@@ -22,5 +23,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @NativeQuery("select * from category where id NOT IN (select distinct parent_category_id from category where parent_category_id is not null )")
     Page<Category> findLeafCategories(Pageable pageable);
 
-    List<Category> findByParentCategoryIsNull();
+    Page<Category> findByParentCategoryIsNull(Pageable pageable);
 }

@@ -8,15 +8,19 @@ import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -84,8 +88,8 @@ public class CustomerController {
     }
 
     @PostMapping("/add-address")
-    public ResponseEntity<ApiResponse> addCustomerAddress(@RequestBody @Valid AddressDTO addressDTO) {
-        customerService.addCustomerAddress(addressDTO);
+    public ResponseEntity<ApiResponse> addCustomerAddress(@RequestBody @Valid AddressCO addressCO) {
+        customerService.addCustomerAddress(addressCO);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(messageUtil.getMessage("customer.address.added")));
     }
@@ -97,8 +101,9 @@ public class CustomerController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<CategoryDetailsVO> getAllCustomerCategories(@RequestParam(name = "id", required = false) Long id) {
-        return ResponseEntity.ok(categoryService.getAllCustomerCategories(id));
+    public ResponseEntity<PageResponseVO<List<CategoryDetailsVO>>> getAllCustomerCategories(@RequestParam(name = "id", required = false) Long id,
+                                                                                            @PageableDefault(sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(categoryService.getAllCustomerCategories(id, pageable));
     }
 
     @GetMapping("/category/filters/{id}")
