@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface CustomerService {
-    void registerCustomer(CustomerRegisterCO customerRegisterCO, MultipartFile file);
+    void registerCustomer(CustomerRegisterCO customerRegisterCO);
 
     void activateCustomerAccount(String token);
 
@@ -32,4 +32,6 @@ public interface CustomerService {
     void addCustomerAddress(AddressDTO addressDTO);
 
     void deleteCustomerAddress(long addressId);
+
+    void addCustomerProfileImage(MultipartFile image);
 }

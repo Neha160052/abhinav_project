@@ -49,7 +49,8 @@ public class CustomerServiceImpl implements CustomerService {
     ImageService imageService;
     MessageUtil messageUtil;
 
-    public void registerCustomer(CustomerRegisterCO registerCO, MultipartFile file) {
+    @Override
+    public void registerCustomer(CustomerRegisterCO registerCO) {
         if (userRepository.existsByEmail(registerCO.getEmail())) {
             throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
@@ -74,16 +75,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         customer.setUser(user);
         customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
-        Customer newCustomer = generateNewActivationTokenAndSendEmail(customer);
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                imageService.saveUserProfileImage(file, newCustomer.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to store profile picture for user " + customer.getId(), e);
-            }
-        }
-
+        generateNewActivationTokenAndSendEmail(customer);
     }
 
     private Customer generateNewActivationTokenAndSendEmail(Customer customer) {
@@ -152,6 +144,21 @@ public class CustomerServiceImpl implements CustomerService {
                 detailsDTO.hasNext(),
                 detailsDTO.getContent()
         );
+    }
+
+    @Override
+    public void addCustomerProfileImage(MultipartFile image) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(()->new UserNotFoundException("Could not find customer details"));
+
+        if (image != null && !image.isEmpty()) {
+            try {
+                imageService.saveUserProfileImage(image, customer.getId());
+            } catch (IOException e) {
+                throw new RuntimeException(messageUtil.getMessage("profile.image.error", customer.getId()));
+            }
+        }
     }
 
     @Override
@@ -239,7 +246,7 @@ public class CustomerServiceImpl implements CustomerService {
         try {
             if (imageService.fileExists(dto.getId()).isPresent()) {
                 String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/static/")
+                        .path("/static/user/")
                         .path(String.valueOf(dto.getId()))
                         .path("/profile-image")
                         .toUriString();

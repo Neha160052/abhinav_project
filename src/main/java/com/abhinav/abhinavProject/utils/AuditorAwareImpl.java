@@ -3,9 +3,9 @@ package com.abhinav.abhinavProject.utils;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import io.micrometer.common.lang.NonNullApi;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -15,8 +15,16 @@ public class AuditorAwareImpl implements AuditorAware<String> {
 
     @Override
     public Optional<String> getCurrentAuditor() {
-        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = principal.getUsername();
-        return StringUtils.hasText(username) ? Optional.of(username) : Optional.of("SYSTEM");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return Optional.of("SYSTEM");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserPrinciple userPrinciple) {
+            return Optional.of((userPrinciple).getUsername());
+        } else {
+            return Optional.of(principal.toString());
+        }
     }
 }

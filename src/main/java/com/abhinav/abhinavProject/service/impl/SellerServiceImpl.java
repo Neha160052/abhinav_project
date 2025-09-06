@@ -71,6 +71,7 @@ public class SellerServiceImpl implements SellerService {
                 .addressLine(companyAddress.getAddressLine())
                 .zipCode(Integer.parseInt(companyAddress.getZipCode()))
                 .label(companyAddress.getLabel())
+                .user(user)
                 .build();
 
         user.setAddress(Set.of(userAddress));
