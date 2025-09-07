@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrinciple principal = (UserPrinciple) authentication.getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notFound")));
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
         userRepository.save(user);

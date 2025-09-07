@@ -47,7 +47,7 @@ public class CustomerRegisterCO {
             regexp = Regex.CONTACT,
             message = "{user.phone.pattern}"
     )
-    String phoneNumber;
+    String contact;
 
     @NotBlank(message = "{password.required}")
     @Size(min = 8, max = 15, message = "{password.size}")

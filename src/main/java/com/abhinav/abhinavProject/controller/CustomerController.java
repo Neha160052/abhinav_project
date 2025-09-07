@@ -1,11 +1,11 @@
 package com.abhinav.abhinavProject.controller;
 
 import com.abhinav.abhinavProject.co.*;
-import com.abhinav.abhinavProject.entity.user.Address;
 import com.abhinav.abhinavProject.exception.ApiResponse;
 import com.abhinav.abhinavProject.service.CategoryService;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.AddressVO;
 import com.abhinav.abhinavProject.vo.CategoryDetailsVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
@@ -57,7 +57,7 @@ public class CustomerController {
     }
 
     @GetMapping("/address")
-    public ResponseEntity<Set<Address>> getCustomerAddresses() {
+    public ResponseEntity<Set<AddressVO>> getCustomerAddresses() {
         return ResponseEntity.ok(customerService.getCustomerAddresses());
     }
 

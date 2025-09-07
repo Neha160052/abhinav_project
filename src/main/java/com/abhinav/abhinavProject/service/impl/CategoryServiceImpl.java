@@ -97,13 +97,17 @@ public class CategoryServiceImpl implements CategoryService {
         Category thisCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(messageUtil.getMessage("category.notFound", id)));
 
+        if (thisCategory.getName().equalsIgnoreCase(updateCategoryCO.getCategoryName())) {
+            return;
+        }
         Category parentCategory = thisCategory.getParentCategory();
 
         validateSiblingNameUniqueness(updateCategoryCO.getCategoryName(), parentCategory);
-
         if (parentCategory != null) {
             validateNameUniquenessAlongPath(updateCategoryCO.getCategoryName(), parentCategory);
         }
+        validateNameUniquenessInChildren(updateCategoryCO.getCategoryName(), thisCategory);
+
         thisCategory.setName(updateCategoryCO.getCategoryName());
         categoryRepository.save(thisCategory);
     }
@@ -313,6 +317,18 @@ public class CategoryServiceImpl implements CategoryService {
                 );
             }
             current = current.getParentCategory();
+        }
+    }
+
+    private void validateNameUniquenessInChildren(String newName, Category category) {
+        List<Category> children = categoryRepository.findByParentCategory_Id(category.getId());
+        for (Category child : children) {
+            if (child.getName().equalsIgnoreCase(newName)) {
+                throw new ValidationException(
+                        messageUtil.getMessage("category.name.descendantConflict", newName, child.getId())
+                );
+            }
+            validateNameUniquenessInChildren(newName, child);
         }
     }
 

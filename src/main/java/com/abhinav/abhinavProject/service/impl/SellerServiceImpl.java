@@ -50,7 +50,7 @@ public class SellerServiceImpl implements SellerService {
     CustomerRepository customerRepository;
     EmailServiceImpl emailServiceImpl;
 
-    public Seller registerSeller(SellerRegisterCO registerCO) {
+    public void registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
             throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
@@ -105,7 +105,6 @@ public class SellerServiceImpl implements SellerService {
 
         Seller savedSeller = sellerRepository.save(newSeller);
         emailServiceImpl.sendSellerRegisteredEmail(savedSeller);
-        return savedSeller;
     }
 
     @Override
@@ -157,7 +156,7 @@ public class SellerServiceImpl implements SellerService {
             if (sellerRepository.existsByCompanyNameIgnoreCase(companyName)) {
                 throw new ValidationException(messageUtil.getMessage("company.name.alreadyExists"));
             }
-            seller.setGst(companyName);
+            seller.setCompanyName(companyName);
         }
 
         if(nonNull(sellerProfileUpdateCO.getFirstName()))

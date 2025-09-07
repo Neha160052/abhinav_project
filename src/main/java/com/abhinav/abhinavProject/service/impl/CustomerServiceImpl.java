@@ -9,6 +9,7 @@ import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.AddressVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.hasText;
@@ -58,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
 
-        long contact = Long.parseLong(registerCO.getPhoneNumber());
+        long contact = Long.parseLong(registerCO.getContact());
         if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
             throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
         }
@@ -170,11 +172,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Set<Address> getCustomerAddresses() {
+    public Set<AddressVO> getCustomerAddresses() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(()-> new UserNotFoundException("User not Found"));
-        return user.getAddress();
+                .orElseThrow(()-> new UserNotFoundException(messageUtil.getMessage("user.notFound")));
+        return user.getAddress().stream().map(AddressVO::new).collect(Collectors.toSet());
     }
 
     @Override

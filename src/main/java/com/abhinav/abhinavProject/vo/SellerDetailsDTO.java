@@ -21,23 +21,23 @@ public class SellerDetailsDTO {
     boolean isLocked;
     String companyName;
     long companyContact;
-    Address companyAddress;
+    AddressVO companyAddress;
     String gst;
 
     public SellerDetailsDTO(Seller seller) {
         String middleName = seller.getUser().getMiddleName();
+        StringJoiner joiner = new StringJoiner(" ").add(seller.getUser().getFirstName());
+        if(middleName!=null) joiner.add(middleName);
+        joiner.add(seller.getUser().getLastName());
+
         this.id = seller.getId();
-        this.fullName = new StringJoiner(" ")
-                .add(seller.getUser().getFirstName())
-                .add(middleName != null ? middleName : "")
-                .add(seller.getUser().getLastName())
-                .toString();
+        this.fullName = joiner.toString();
         this.email = seller.getUser().getEmail();
         this.isActive = seller.getUser().isActive();
         this.isLocked = seller.getUser().isLocked();
         this.companyName = seller.getCompanyName();
         this.companyContact = seller.getCompanyContact();
-        this.companyAddress = seller.getUser().getAddress().stream().findFirst().orElse(new Address());
+        this.companyAddress = new AddressVO(seller.getUser().getAddress().stream().findFirst().orElse(new Address()));
         this.gst = seller.getGst();
     }
 }

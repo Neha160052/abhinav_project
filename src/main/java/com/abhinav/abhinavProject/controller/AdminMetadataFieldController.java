@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/admin/category")
 @RequiredArgsConstructor
@@ -32,7 +31,7 @@ public class AdminMetadataFieldController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PageResponseVO<List<MetadataFieldDetailsVO>>> getAllMetadataFields(
             @PageableDefault(sort = "name") Pageable pageable,
-            @RequestParam(value = "query", required = false) String query
+            @RequestParam(value = "query", required = false, defaultValue = "") String query
             ) {
         return ResponseEntity.ok(metadataFieldService.getAllFields(pageable, query));
     }

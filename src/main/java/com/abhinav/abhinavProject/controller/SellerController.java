@@ -58,7 +58,7 @@ public class SellerController {
 
     @PatchMapping("/update-address")
     public ResponseEntity<ApiResponse> updateSellerAddress(@RequestParam long id,
-                                                      @RequestBody @Valid AddressPatchDTO addressPatchDTO
+                                                           @RequestBody @Valid AddressPatchDTO addressPatchDTO
     ) {
         sellerService.updateSellerAddress(id, addressPatchDTO);
         return ResponseEntity.ok(new ApiResponse(messageUtil.getMessage("address.updated")));
