@@ -8,6 +8,7 @@ import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.exception.PasswordMismatchException;
 import com.abhinav.abhinavProject.exception.RoleNotFoundException;
 import com.abhinav.abhinavProject.exception.UserNotFoundException;
+import com.abhinav.abhinavProject.repository.CustomerRepository;
 import com.abhinav.abhinavProject.repository.RoleRepository;
 import com.abhinav.abhinavProject.repository.SellerRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.util.StringUtils.hasText;
 
 @Slf4j
 @Service
@@ -45,6 +47,8 @@ public class SellerServiceImpl implements SellerService {
     PasswordEncoder passwordEncoder;
     UserService userService;
     MessageUtil messageUtil;
+    CustomerRepository customerRepository;
+    EmailServiceImpl emailServiceImpl;
 
     public Seller registerSeller(SellerRegisterCO registerCO) {
         if(userRepository.existsByEmail(registerCO.getEmail())) {
@@ -53,6 +57,19 @@ public class SellerServiceImpl implements SellerService {
 
         if(!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
             throw new PasswordMismatchException(messageUtil.getMessage("password.mismatch"));
+        }
+
+        if (sellerRepository.existsByGst(registerCO.getGst())) {
+            throw new ValidationException(messageUtil.getMessage("gst.alreadyExists", registerCO.getGst()));
+        }
+
+        long contact = Long.parseLong(registerCO.getCompanyContact());
+        if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+            throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
+        }
+
+        if (sellerRepository.existsByCompanyNameIgnoreCase(registerCO.getCompanyName())) {
+            throw new ValidationException(messageUtil.getMessage("company.name.alreadyExists"));
         }
 
         Role sellerRole = roleRepository.findByAuthority("ROLE_SELLER")
@@ -83,10 +100,12 @@ public class SellerServiceImpl implements SellerService {
 
         newSeller.setUser(user);
         newSeller.setCompanyName(registerCO.getCompanyName());
-        newSeller.setCompanyContact(Long.parseLong(registerCO.getCompanyContact()));
+        newSeller.setCompanyContact(contact);
         newSeller.setGst(registerCO.getGst());
 
-        return sellerRepository.save(newSeller);
+        Seller savedSeller = sellerRepository.save(newSeller);
+        emailServiceImpl.sendSellerRegisteredEmail(savedSeller);
+        return savedSeller;
     }
 
     @Override
@@ -117,18 +136,38 @@ public class SellerServiceImpl implements SellerService {
                 .orElseThrow(() -> new UserNotFoundException("User not Found"));
         User sellerUser = seller.getUser();
 
+        String gst = sellerProfileUpdateCO.getGst();
+        if (nonNull(gst)) {
+            if (sellerRepository.existsByGst(gst)) {
+                throw new ValidationException(messageUtil.getMessage("gst.alreadyExists", gst));
+            }
+            seller.setGst(gst);
+        }
+
+        if (hasText(sellerProfileUpdateCO.getCompanyContact())) {
+            long contact = Long.parseLong(sellerProfileUpdateCO.getCompanyContact());
+            if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+                throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
+            }
+            seller.setCompanyContact(contact);
+        }
+
+        String companyName = sellerProfileUpdateCO.getCompanyName();
+        if (nonNull(companyName)) {
+            if (sellerRepository.existsByCompanyNameIgnoreCase(companyName)) {
+                throw new ValidationException(messageUtil.getMessage("company.name.alreadyExists"));
+            }
+            seller.setGst(companyName);
+        }
+
         if(nonNull(sellerProfileUpdateCO.getFirstName()))
             sellerUser.setFirstName(sellerProfileUpdateCO.getFirstName());
+
         if(nonNull(sellerProfileUpdateCO.getMiddleName()))
             sellerUser.setMiddleName(sellerUser.getMiddleName());
+
         if(nonNull(sellerProfileUpdateCO.getLastName()))
             sellerUser.setLastName(sellerProfileUpdateCO.getLastName());
-        if(nonNull(sellerProfileUpdateCO.getCompanyContact()))
-            seller.setCompanyContact(Long.parseLong(sellerProfileUpdateCO.getCompanyName()));
-        if(nonNull(sellerProfileUpdateCO.getGst()))
-            seller.setGst(sellerProfileUpdateCO.getGst());
-        if(nonNull(sellerProfileUpdateCO.getCompanyName()))
-            seller.setCompanyName(sellerProfileUpdateCO.getCompanyName());
 
         seller.setUser(sellerUser);
 

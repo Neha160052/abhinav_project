@@ -3,6 +3,7 @@ package com.abhinav.abhinavProject.service.impl;
 import com.abhinav.abhinavProject.config.AdminProps;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.user.Customer;
+import com.abhinav.abhinavProject.entity.user.Seller;
 import com.abhinav.abhinavProject.entity.user.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -114,6 +115,22 @@ public class EmailServiceImpl {
                 product.getSeller().getUser().getEmail(),
                 "Product Deactivated Notification",
                 "Hi " +product.getSeller().getUser().getFirstName()+ ",\nYour product "+product.getName()+" with product id:"+product.getId()+" has been deactivated by the admin."
+        );
+    }
+
+    public void sendSellerRegisteredEmail(Seller savedSeller) {
+        sendMail(
+                savedSeller.getUser().getEmail(),
+                "Seller Registered Successfully",
+                "Hi " +savedSeller.getUser().getFirstName()+ ",\nYour account has been created successfully. Please wait for the account activation by the admin."
+        );
+    }
+
+    public void sendPasswordResetSuccessEmail(User user) {
+        sendMail(
+                user.getEmail(),
+                "Password Reset Successfully",
+                "Hi "+user.getFirstName()+",\nYour password has been reset successfully."
         );
     }
 }

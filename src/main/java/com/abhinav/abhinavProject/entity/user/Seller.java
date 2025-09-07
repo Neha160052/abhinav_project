@@ -21,8 +21,10 @@ public class Seller {
     @JoinColumn(name = "user_id")
     User user;
 
+    @Column(unique = true)
     String gst;
 
+    @Column(unique = true)
     long companyContact;
 
     String companyName;

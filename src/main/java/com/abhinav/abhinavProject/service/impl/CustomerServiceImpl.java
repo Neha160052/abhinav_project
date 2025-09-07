@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
@@ -49,17 +50,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void registerCustomer(CustomerRegisterCO registerCO) {
+        if (!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
+            throw new ValidationException(messageUtil.getMessage("password.mismatch"));
+        }
+
         if (userRepository.existsByEmail(registerCO.getEmail())) {
             throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
         }
 
         long contact = Long.parseLong(registerCO.getPhoneNumber());
         if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
-            throw new ValidationException(messageUtil.getMessage("contact.alreadyExists", contact));
-        }
-
-        if (!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new ValidationException(messageUtil.getMessage("password.mismatch"));
+            throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
         }
 
         Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER")
@@ -183,14 +184,20 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(()->new UserNotFoundException("User not found"));
         User customerUser = customer.getUser();
 
+        if (hasText(customerProfileUpdateCO.getContact())) {
+            long contact = Long.parseLong(customerProfileUpdateCO.getContact());
+            if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+                throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
+            }
+            customer.setContact(contact);
+        }
+
         if(nonNull(customerProfileUpdateCO.getFirstName()))
             customerUser.setFirstName(customerProfileUpdateCO.getFirstName());
         if(nonNull(customerProfileUpdateCO.getMiddleName()))
             customerUser.setMiddleName(customerUser.getMiddleName());
         if(nonNull(customerProfileUpdateCO.getLastName()))
             customerUser.setLastName(customerProfileUpdateCO.getLastName());
-        if(nonNull(customerProfileUpdateCO.getContact()))
-            customer.setContact(Long.parseLong(customerProfileUpdateCO.getContact()));
 
         customer.setUser(customerUser);
         customerRepository.save(customer);

@@ -22,6 +22,7 @@ public class Customer {
     @OneToOne(cascade = CascadeType.ALL)
     User user;
 
+    @Column(unique = true)
     long contact;
 
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)

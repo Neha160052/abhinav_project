@@ -115,6 +115,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
         userRepository.save(user);
+        emailServiceImpl.sendPasswordResetSuccessEmail(user);
     }
 
     public String[] refreshJwtTokens(String refreshToken) {
