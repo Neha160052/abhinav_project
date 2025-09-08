@@ -240,7 +240,20 @@ public class ProductServiceImpl implements ProductService {
         ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
         vo.setIsActive(productVar.isActive());
         vo.setProductDetails(productVo);
-        return setPrimaryImage(vo, productVar);
+        setPrimaryImage(vo, productVar);
+
+        long productId = product.getId();
+        long variationId = productVar.getId();
+
+        List<String> secondaryImageNames = imageService.listSecondaryFiles(productId, variationId);
+
+        List<String> secondaryImageUrls = secondaryImageNames.stream()
+                .map(imageName -> buildSecondaryImageUrl(productId, variationId, imageName))
+                .toList();
+        if(!secondaryImageUrls.isEmpty()) {
+            vo.setSecondaryImage(secondaryImageUrls);
+        }
+        return vo;
     }
 
     @Override
@@ -373,7 +386,18 @@ public class ProductServiceImpl implements ProductService {
                     ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
                     vo.setIsActive(productVar.isActive());
                     vo.setProductDetails(productVo);
-                    return setPrimaryImage(vo, productVar);
+                    setPrimaryImage(vo, productVar);
+
+                    long pId = prod.getId();
+                    long pvId = productVar.getId();
+                    List<String> secondaryImageNames = imageService.listSecondaryFiles(pId, pvId);
+                    List<String> secondaryImageUrls = secondaryImageNames.stream()
+                            .map(imageName -> buildSecondaryImageUrl(pId, pvId, imageName))
+                            .toList();
+                    if(!secondaryImageUrls.isEmpty()) {
+                        vo.setSecondaryImage(secondaryImageUrls);
+                    }
+                    return vo;
                 })
                 .toList();
 
@@ -536,8 +560,9 @@ public class ProductServiceImpl implements ProductService {
         List<String> secondaryImageUrls = secondaryImageNames.stream()
                 .map(imageName -> buildSecondaryImageUrl(productId, variationId, imageName))
                 .toList();
-
-        vo.setSecondaryImage(secondaryImageUrls);
+        if(!secondaryImageUrls.isEmpty()) {
+            vo.setSecondaryImage(secondaryImageUrls);
+        }
         return vo;
     }
 
