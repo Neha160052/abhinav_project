@@ -16,7 +16,11 @@ import lombok.experimental.FieldDefaults;
 public class OrderStatus {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    long id;
+
     @OneToOne
+    @MapsId
     OrderProduct orderProduct;
 
     @Enumerated(EnumType.STRING)

@@ -36,6 +36,7 @@ public class CustomDaoAuthenticationProvider extends DaoAuthenticationProvider {
                                                   UsernamePasswordAuthenticationToken authentication)
             throws AuthenticationException {
         try {
+            log.info("Validating Invalid Password Attempt Count");
             super.additionalAuthenticationChecks(userDetails, authentication);
             userRepository.findByEmail(userDetails.getUsername())
                     .ifPresent(user -> {

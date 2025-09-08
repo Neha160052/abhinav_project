@@ -15,6 +15,7 @@ import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 
 import static java.util.Objects.nonNull;
 
+@Slf4j
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -38,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String activateUserAccount(long id) {
+        log.info("Attempting to activate account for user ID: {}", id);
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("Invalid User id provided")
         );
@@ -49,12 +52,13 @@ public class UserServiceImpl implements UserService {
         user.setActive(true);
         userRepository.save(user);
         emailServiceImpl.sendAdminActivationMail(user);
-
+        log.info("Account for user '{}' activated successfully.", user.getEmail());
         return messageUtil.getMessage("account.activated.success");
     }
 
     @Override
     public String deactivateUserAccount(long id) {
+        log.info("Attempting to deactivate account for user ID: {}", id);
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("Invalid User id provided")
         );
@@ -66,7 +70,7 @@ public class UserServiceImpl implements UserService {
         user.setActive(false);
         userRepository.save(user);
         emailServiceImpl.sendAdminDeactivationMail(user);
-
+        log.info("Account for user '{}' deactivated successfully.", user.getEmail());
         return messageUtil.getMessage("account.deactivated.success");
     }
 
@@ -79,6 +83,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
         userRepository.save(user);
+        log.info("Password updated successfully for user '{}'. User will be logged out.", user.getEmail());
         authService.logoutUser((String) authentication.getCredentials());
         emailServiceImpl.sendPasswordUpdateMail(user);
     }

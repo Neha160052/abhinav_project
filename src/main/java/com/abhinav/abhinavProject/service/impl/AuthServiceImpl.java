@@ -16,6 +16,7 @@ import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -43,17 +45,20 @@ public class AuthServiceImpl implements AuthService {
     PasswordResetTokenRepository passwordResetTokenRepository;
 
     public String[] loginUser(LoginRequestCO loginRequestCO) {
+        log.info("Login attempt for user: {}", loginRequestCO.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestCO.getEmail(), loginRequestCO.getPassword()));
 
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
 
+        log.info("Login successful for user: {}", userPrinciple.getUsername());
         return jwtService.generateAccessAndRefreshToken(userPrinciple.getUsername(),
                 userPrinciple.getAuthorities().stream().findFirst().get()
         );
     }
 
     public void logoutUser(String token) {
+        log.info("Logout request received. Blacklisting token.");
         String refreshTokenJti = jwtService.extractRefreshTokenJti(token);
         Date expiry = jwtService.extractExpiration(token);
 
@@ -71,12 +76,14 @@ public class AuthServiceImpl implements AuthService {
 
         PasswordResetToken savedToken = passwordResetTokenRepository.save(passwordResetToken);
 
+        log.info("New password reset token generated and saved for user: {}", user.getEmail());
         emailServiceImpl.sendPasswordResetEmail(user.getFirstName(),
                 user.getEmail(),
                 savedToken.getToken());
     }
 
     public void sendResetPasswordLink(String email) {
+        log.info("Request to send password reset link for email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notfound.email", email)));
 
@@ -115,6 +122,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
         userRepository.save(user);
+
+        log.info("Password successfully reset for user: {}", user.getEmail());
         emailServiceImpl.sendPasswordResetSuccessEmail(user);
     }
 
@@ -130,6 +139,7 @@ public class AuthServiceImpl implements AuthService {
 
         // check if the refresh token is blacklisted
         if (blacklistTokensRepository.existsByTokenId(refreshTokenJti)) {
+            log.warn("Attempted to use a blacklisted refresh token with JTI: {}", refreshTokenJti);
             throw new InvalidTokenException(messageUtil.getMessage("refresh.token.invalid"));
         }
 

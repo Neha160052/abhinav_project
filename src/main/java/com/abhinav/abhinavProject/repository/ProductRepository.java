@@ -19,4 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
   @NativeQuery("select * from product where id = ?")
   Optional<Product> findByIdAdmin(long id);
+
+  List<Product> findByIsActiveFalse();
 }
