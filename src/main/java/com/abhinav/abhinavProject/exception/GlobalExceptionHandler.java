@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -23,7 +24,6 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
-import java.util.Locale;
 
 import static java.util.Objects.nonNull;
 
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse> validationExceptionHandler(MethodArgumentNotValidException e, Locale locale) {
+    public ResponseEntity<ApiResponse> validationExceptionHandler(MethodArgumentNotValidException e) {
         List<String> errors = e.getBindingResult()
                 .getAllErrors()
                 .stream()
@@ -102,13 +102,6 @@ public class GlobalExceptionHandler {
                 new ApiResponse(HttpStatus.NOT_FOUND.value(), "Metadata Field not found", ex.getMessage())
         );
     }
-
-//    @ExceptionHandler(FileNotFoundException.class)
-//    public ResponseEntity<ApiResponse> handleMetaFieldNotFound(FileNotFoundException ex) {
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-//                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Field not found", ex.getMessage())
-//        );
-//    }
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ApiResponse> handleProductNotFound(ProductNotFoundException ex) {
@@ -184,6 +177,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleMissingServletRequestPart(MissingServletRequestPartException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Request Part missing", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse> handleMissingServletRequestPart(MissingServletRequestParameterException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Request Param missing", ex.getMessage())
         );
     }
 

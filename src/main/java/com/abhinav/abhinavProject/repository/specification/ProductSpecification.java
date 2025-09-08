@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductSpecification {
 
@@ -58,22 +60,24 @@ public class ProductSpecification {
             Predicate metadataPredicate = cb.conjunction();
 
             for (Map.Entry<String, String> entry : metadataFilters.entrySet()) {
-                // This function call is specific to MySQL for querying JSON.
-                // It extracts the value of a key from the 'metadata' JSON column.
-                // The path '$.key' is used to access the value.
-                Expression<String> jsonExtract = cb.function(
-                        "JSON_EXTRACT",
-                        String.class,
-                        variationJoin.get("metadata"),
-                        cb.literal("$." + entry.getKey())
-                );
-                Expression<String> jsonValue = cb.function(
-                        "JSON_UNQUOTE",
-                        String.class,
-                        jsonExtract
-                );
+                if(hasText(entry.getValue())) {
+                    // This function call is specific to MySQL for querying JSON.
+                    // It extracts the value of a key from the 'metadata' JSON column.
+                    // The path '$.key' is used to access the value.
+                    Expression<String> jsonExtract = cb.function(
+                            "JSON_EXTRACT",
+                            String.class,
+                            variationJoin.get("metadata"),
+                            cb.literal("$." + entry.getKey())
+                    );
+                    Expression<String> jsonValue = cb.function(
+                            "JSON_UNQUOTE",
+                            String.class,
+                            jsonExtract
+                    );
 
-                metadataPredicate = cb.and(metadataPredicate, cb.equal(jsonValue, entry.getValue()));
+                    metadataPredicate = cb.and(metadataPredicate, cb.equal(jsonValue, entry.getValue()));
+                }
             }
             assert query != null;
             query.distinct(true); // Ensure distinct products are returned

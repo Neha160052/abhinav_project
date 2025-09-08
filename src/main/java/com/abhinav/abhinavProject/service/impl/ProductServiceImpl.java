@@ -207,7 +207,21 @@ public class ProductServiceImpl implements ProductService {
         ProductDetailsVO productDetailsVO = new ProductDetailsVO(product);
 
         List<ProductVariationDetailsVO> variationVOs = activeVariations.stream()
-                .map(this::mapToCustomerProductVariationVO)
+                .map(pv -> {
+                    ProductVariationDetailsVO vo = mapToCustomerProductVariationVO(pv);
+                    long productId = pv.getProduct().getId();
+                    long variationId = pv.getId();
+
+                    List<String> secondaryImageNames = imageService.listSecondaryFiles(productId, variationId);
+
+                    List<String> secondaryImageUrls = secondaryImageNames.stream()
+                            .map(imageName -> buildSecondaryImageUrl(productId, variationId, imageName))
+                            .toList();
+                    if(!secondaryImageUrls.isEmpty()) {
+                        vo.setSecondaryImage(secondaryImageUrls);
+                    }
+                    return vo;
+                })
                 .toList();
 
         productDetailsVO.setProductVariations(variationVOs);
@@ -551,18 +565,6 @@ public class ProductServiceImpl implements ProductService {
     private ProductVariationDetailsVO mapToCustomerProductVariationVO(ProductVariation variation) {
         ProductVariationDetailsVO vo = new ProductVariationDetailsVO(variation);
         setPrimaryImage(vo, variation);
-
-        long productId = variation.getProduct().getId();
-        long variationId = variation.getId();
-
-        List<String> secondaryImageNames = imageService.listSecondaryFiles(productId, variationId);
-
-        List<String> secondaryImageUrls = secondaryImageNames.stream()
-                .map(imageName -> buildSecondaryImageUrl(productId, variationId, imageName))
-                .toList();
-        if(!secondaryImageUrls.isEmpty()) {
-            vo.setSecondaryImage(secondaryImageUrls);
-        }
         return vo;
     }
 
