@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = "token"))
 public class ActivationToken {
 
     @Id
     long id;
 
+    @Column(unique = true)
     String token;
 
     @OneToOne(fetch = FetchType.LAZY)

@@ -1,6 +1,11 @@
 package com.abhinav.abhinavProject.service.impl;
 
+import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.service.ImageService;
+import jakarta.validation.ValidationException;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -19,31 +24,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+@Slf4j
 @Service
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ImageServiceImpl implements ImageService {
 
-    private final Path userImageStorageLocation;
+    Path userImageStorageLocation;
+    Path productVariationImageStorageLocation;
     private final List<String> supportedFormats = Arrays.asList("jpg", "jpeg", "png", "bmp");
 
     public ImageServiceImpl(@Value("${file.upload-dir}") String uploadDir) throws IOException {
         Path basePath = Paths.get(uploadDir);
         this.userImageStorageLocation = basePath.resolve("users").toAbsolutePath().normalize();
+        this.productVariationImageStorageLocation = basePath.resolve("products").toAbsolutePath().normalize();
 
         Files.createDirectories(this.userImageStorageLocation);
+        Files.createDirectories(this.productVariationImageStorageLocation);
     }
 
     @Override
-    public void save(MultipartFile file, Long userId) throws IOException {
+    public void saveUserProfileImage(MultipartFile file, Long userId) throws IOException {
         String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-        String extension = Optional.of(originalFilename)
-                .filter(f -> f.contains("."))
-                .map(f -> f.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase())
-                .orElseThrow(() -> new IOException("Invalid file format. No extension found."));
-
-        if (!supportedFormats.contains(extension)) {
-            throw new IOException("Invalid file format. Supported formats are: " + supportedFormats);
-        }
+        String extension = getFileExtension(originalFilename);
+        validateFileExtension(extension);
 
         deleteExistingFile(userId);
 
@@ -54,13 +59,13 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Resource load(Long userId) throws IOException {
-        Optional<Path> foundFile = Files.walk(userImageStorageLocation, 1)
-                .filter(path -> {
-                    String filename = path.getFileName().toString();
-                    return filename.startsWith(userId + ".");
-                })
-                .findFirst();
+    public Resource loadUserProfileImage(Long userId) throws IOException {
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(userImageStorageLocation, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(userId + "."))
+                    .findFirst();
+        }
 
         if (foundFile.isPresent()) {
             Path filePath = foundFile.get();
@@ -79,10 +84,175 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    @Override
+    public String saveVariationPrimaryImage(ProductVariation variation, MultipartFile primaryImage) throws IOException {
+        if (primaryImage == null || primaryImage.isEmpty()) {
+            throw new ValidationException("Primary Image is needed to add Product Variation");
+        }
+        return saveVariationImage(variation, primaryImage, String.valueOf(variation.getId()));
+    }
+
+    @Override
+    public Resource loadVariationPrimaryImage(Long productId, Long variationId) throws IOException {
+        Path variationImagesPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(productId))
+                .resolve("variations");
+
+        if (!Files.exists(variationImagesPath) || !Files.isDirectory(variationImagesPath)) {
+            throw new FileNotFoundException("Image directory not found for product: " + productId);
+        }
+
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(variationImagesPath, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(variationId + "."))
+                    .findFirst();
+        }
+
+        if (foundFile.isPresent()) {
+            Path filePath = foundFile.get();
+            try {
+                Resource resource = new UrlResource(filePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    return resource;
+                } else {
+                    throw new IOException("Could not read file: " + filePath);
+                }
+            } catch (MalformedURLException ex) {
+                throw new IOException("Could not form URL for file: " + filePath, ex);
+            }
+        } else {
+            throw new FileNotFoundException("Primary image not found for product variation: " + variationId);
+        }
+    }
+
+    @Override
+    public void saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException {
+        if (secondaryImages == null || secondaryImages.isEmpty()) {
+            return;
+        }
+
+        int imageCounter = 1;
+        for (MultipartFile image : secondaryImages) {
+            String fileName = variation.getId() + "_" + imageCounter++;
+            saveVariationImage(variation, image, fileName);
+        }
+    }
+
+    @Override
+    public Resource loadVariationSecondaryImage(Long productId, Long variationId, String imageName) throws IOException {
+        String expectedPrefix = variationId + "_";
+        if (!imageName.startsWith(expectedPrefix)) {
+            throw new FileNotFoundException("Invalid image name format for variation: " + variationId);
+        }
+
+        Path variationImagesPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(productId))
+                .resolve("variations");
+
+        if (!Files.exists(variationImagesPath) || !Files.isDirectory(variationImagesPath)) {
+            throw new FileNotFoundException("Image directory not found for product: " + productId);
+        }
+
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(variationImagesPath, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(imageName + "."))
+                    .findFirst();
+        }
+
+        if (foundFile.isPresent()) {
+            Path filePath = foundFile.get();
+            try {
+                Resource resource = new UrlResource(filePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    return resource;
+                } else {
+                    throw new IOException("Could not read file: " + filePath);
+                }
+            } catch (MalformedURLException ex) {
+                throw new IOException("Could not form URL for file: " + filePath, ex);
+            }
+        } else {
+            throw new FileNotFoundException("Secondary image not found: " + imageName);
+        }
+    }
+
+    private String saveVariationImage(ProductVariation variation, MultipartFile image, String fileNameWithoutExtension) throws IOException {
+        long productId = variation.getProduct().getId();
+
+        Path variationPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(productId))
+                .resolve("variations");
+
+        Files.createDirectories(variationPath);
+
+        String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(image.getOriginalFilename()));
+        String extension = getFileExtension(originalFilename);
+        validateFileExtension(extension);
+
+        String newFileName = fileNameWithoutExtension + "." + extension;
+        Path targetLocation = variationPath.resolve(newFileName);
+
+        Files.copy(image.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+        return newFileName;
+    }
+
+    private void validateFileExtension(String extension) throws IOException {
+        if (extension.isEmpty()) {
+            throw new IOException("Invalid file format. No extension found.");
+        }
+        if (!supportedFormats.contains(extension)) {
+            throw new IOException("Invalid file format. Supported formats are: " + supportedFormats);
+        }
+    }
+
+    private String getFileExtension(String fileName) {
+        return Optional.of(fileName)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(fileName.lastIndexOf(".") + 1).toLowerCase())
+                .orElse("");
+    }
+
     public Optional<Path> fileExists(Long userId) throws IOException {
-        return Files.walk(userImageStorageLocation, 1)
-                .filter(path -> path.getFileName().toString().startsWith(userId + "."))
-                .findFirst();
+        try (Stream<Path> files = Files.walk(userImageStorageLocation, 1)) {
+            return files.filter(path -> path.getFileName().toString().startsWith(userId + "."))
+                    .findFirst();
+        }
+    }
+
+    public List<String> listSecondaryFiles(long pId, Long pvId) {
+        Path variationPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(pId))
+                .resolve("variations");
+
+        if (!Files.exists(variationPath) || !Files.isDirectory(variationPath)) {
+            log.info("No folder found at {}", variationPath);
+            return List.of();
+        }
+
+        try (Stream<Path> stream = Files.list(variationPath)) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .map(f -> f.getFileName().toString())
+                    .filter(name -> name.startsWith(pvId + "_"))
+                    .map(this::removeFileExtension)
+                    .toList();
+        } catch (IOException e) {
+            throw new ValidationException("Could not list secondary files for " + pvId, e);
+        }
+    }
+
+    private String removeFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return filename;
+        }
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return filename.substring(0, lastDotIndex);
+        }
+        return filename;
     }
 
     private void deleteExistingFile(Long userId) throws IOException {

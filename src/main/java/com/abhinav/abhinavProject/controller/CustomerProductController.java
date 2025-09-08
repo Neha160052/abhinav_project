@@ -1,0 +1,59 @@
+package com.abhinav.abhinavProject.controller;
+
+import com.abhinav.abhinavProject.service.ProductService;
+import com.abhinav.abhinavProject.vo.PageResponseVO;
+import com.abhinav.abhinavProject.vo.ProductDetailsVO;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/customer/product")
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('CUSTOMER')")
+public class CustomerProductController {
+
+    ProductService productService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDetailsVO> getProductById(@PathVariable long id) {
+        ProductDetailsVO productDetails = productService.getCustomerProduct(id);
+        return ResponseEntity.ok(productDetails);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponseVO<List<ProductDetailsVO>>> getAllProducts(
+            @RequestParam long categoryId,
+            @RequestParam(required = false) String query,
+            @RequestParam Map<String, String> allParams,
+            @PageableDefault(sort = "id") Pageable pageable) {
+        allParams.remove("categoryId");
+        allParams.remove("query");
+        allParams.remove("page");
+        allParams.remove("size");
+        allParams.remove("sort");
+
+        PageResponseVO<List<ProductDetailsVO>> products = productService.getAllCustomerProducts(
+                categoryId, query, allParams, pageable);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<PageResponseVO<List<ProductDetailsVO>>> getSimilarProducts(
+            @PathVariable long id,
+            @RequestParam(required = false) String query,
+            @PageableDefault(sort = "id") Pageable pageable) {
+        PageResponseVO<List<ProductDetailsVO>> products = productService.getSimilarProducts(id, query, pageable);
+        return ResponseEntity.ok(products);
+    }
+
+}

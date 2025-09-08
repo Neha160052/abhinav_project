@@ -1,8 +1,9 @@
 package com.abhinav.abhinavProject.co;
 
 
-import jakarta.validation.constraints.Email;
+import com.abhinav.abhinavProject.constant.Regex;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,6 @@ import lombok.experimental.FieldDefaults;
 public class EmailRequestCO {
 
     @NotBlank(message = "{email.required}")
-    @Email(message = "{email.invalid}")
+    @Pattern(regexp = Regex.EMAIL, message = "{email.invalid}")
     String email;
 }

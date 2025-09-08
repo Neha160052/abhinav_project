@@ -2,7 +2,6 @@ package com.abhinav.abhinavProject.co;
 
 
 import com.abhinav.abhinavProject.constant.Regex;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -40,7 +39,7 @@ public class CustomerRegisterCO {
     String lastName;
 
     @NotBlank(message = "{email.required}")
-    @Email(message = "{email.invalid}")
+    @Pattern(regexp = Regex.EMAIL, message = "{email.invalid}")
     String email;
 
     @NotBlank(message = "{user.phone.required}")
@@ -48,7 +47,7 @@ public class CustomerRegisterCO {
             regexp = Regex.CONTACT,
             message = "{user.phone.pattern}"
     )
-    String phoneNumber;
+    String contact;
 
     @NotBlank(message = "{password.required}")
     @Size(min = 8, max = 15, message = "{password.size}")

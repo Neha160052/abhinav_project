@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface SellerRepository extends JpaRepository<Seller, Long> {
     Page<Seller> findByUser_EmailContainsIgnoreCase(String email, Pageable pageable);
     Optional<Seller> findByUser_Email(String email);
+    boolean existsByCompanyContact(long companyContact);
+    boolean existsByGst(String gst);
+    boolean existsByCompanyNameIgnoreCase(String companyName);
 }

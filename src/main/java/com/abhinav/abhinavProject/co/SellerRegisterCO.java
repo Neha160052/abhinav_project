@@ -2,8 +2,8 @@ package com.abhinav.abhinavProject.co;
 
 import com.abhinav.abhinavProject.constant.Regex;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -40,7 +40,7 @@ public class SellerRegisterCO {
     String lastName;
 
     @NotBlank(message = "{email.required}")
-    @Email(message = "{email.invalid}")
+    @Pattern(regexp = Regex.EMAIL, message = "{email.invalid}")
     String email;
 
     @NotBlank(message = "{user.phone.required}")
@@ -70,6 +70,7 @@ public class SellerRegisterCO {
     @Size(min = 3, max = 20, message = "{seller.companyname.size}")
     String companyName;
 
+    @NotNull(message = "{seller.companyaddress.required}")
     @Valid
-    AddressDTO companyAddress;
+    AddressCO companyAddress;
 }

@@ -9,5 +9,4 @@ public interface UserService {
     String deactivateUserAccount(long id);
     void updateUserPassword(ResetPasswordCO resetPasswordCO);
     void updateUserAddress(long id, String email, AddressPatchDTO addressPatchDTO);
-
 }

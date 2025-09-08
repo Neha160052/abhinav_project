@@ -10,6 +10,7 @@ public class Regex {
     public static final String PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,15}$";
     public static final String GST = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$";
     public static final String NAME = "^[A-Za-z]+(?: [A-Za-z]+)*$";
+    public static final String EMAIL = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     public static final String ZIPCODE = "^(?!0{6})\\d{6}$";
 
 }

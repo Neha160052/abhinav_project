@@ -1,7 +1,7 @@
 package com.abhinav.abhinavProject.service;
 
 import com.abhinav.abhinavProject.co.*;
-import com.abhinav.abhinavProject.entity.user.Address;
+import com.abhinav.abhinavProject.vo.AddressVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface CustomerService {
-    void registerCustomer(CustomerRegisterCO customerRegisterCO, MultipartFile file);
+    void registerCustomer(CustomerRegisterCO customerRegisterCO);
 
     void activateCustomerAccount(String token);
 
@@ -27,9 +27,11 @@ public interface CustomerService {
 
     void updateCustomerAddress(long id, AddressPatchDTO addressPatchDTO);
 
-    Set<Address> getCustomerAddresses();
+    Set<AddressVO> getCustomerAddresses();
 
-    void addCustomerAddress(AddressDTO addressDTO);
+    void addCustomerAddress(AddressCO addressCO);
 
     void deleteCustomerAddress(long addressId);
+
+    void addCustomerProfileImage(MultipartFile image);
 }

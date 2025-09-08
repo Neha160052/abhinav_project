@@ -2,10 +2,7 @@ package com.abhinav.abhinavProject.entity.user;
 
 
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,15 +14,14 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Cart {
 
-    @EmbeddedId
-    CartCompositeKey cartCompositeKey;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    long id;
 
     @ManyToOne
-    @MapsId("customerId")
     Customer customer;
 
     @ManyToOne
-    @MapsId("productVariationId")
     ProductVariation productVariation;
 
     int quantity;

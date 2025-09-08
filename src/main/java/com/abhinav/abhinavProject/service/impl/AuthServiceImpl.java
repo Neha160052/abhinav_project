@@ -7,10 +7,10 @@ import com.abhinav.abhinavProject.entity.user.PasswordResetToken;
 import com.abhinav.abhinavProject.entity.user.User;
 import com.abhinav.abhinavProject.exception.*;
 import com.abhinav.abhinavProject.repository.BlacklistTokensRepository;
+import com.abhinav.abhinavProject.repository.PasswordResetTokenRepository;
 import com.abhinav.abhinavProject.repository.UserRepository;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.AuthService;
-import com.abhinav.abhinavProject.utils.AuthUtils;
 import com.abhinav.abhinavProject.utils.JwtService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
 import lombok.AccessLevel;
@@ -20,10 +20,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,8 +38,9 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
     JwtService jwtService;
     BlacklistTokensRepository blacklistTokensRepository;
-    AuthUtils authUtils;
+    PasswordEncoder passwordEncoder;
     MessageUtil messageUtil;
+    PasswordResetTokenRepository passwordResetTokenRepository;
 
     public String[] loginUser(LoginRequestCO loginRequestCO) {
         Authentication authentication = authenticationManager.authenticate(
@@ -66,27 +69,26 @@ public class AuthServiceImpl implements AuthService {
         passwordResetToken.setUser(user);
         passwordResetToken.setExpiration(LocalDateTime.now().plusHours(3));
 
-        user.setPasswordResetToken(passwordResetToken);
+        PasswordResetToken savedToken = passwordResetTokenRepository.save(passwordResetToken);
 
-        User savedUser = userRepository.save(user);
-
-        emailServiceImpl.sendPasswordResetEmail(savedUser.getFirstName(),
-                savedUser.getEmail(),
-                savedUser.getPasswordResetToken().getToken());
+        emailServiceImpl.sendPasswordResetEmail(user.getFirstName(),
+                user.getEmail(),
+                savedToken.getToken());
     }
 
     public void sendResetPasswordLink(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notfound")));
+                .orElseThrow(() -> new UserNotFoundException(messageUtil.getMessage("user.notfound.email", email)));
 
         if (!user.isActive()) {
-            throw new AccountInactiveException("Account not activated");
+            throw new AccountInactiveException(messageUtil.getMessage("account.inactive"));
         }
 
-        if (user.getPasswordResetToken() != null) {
+        Optional<PasswordResetToken> existingToken = passwordResetTokenRepository.findById(user.getId());
+        if (existingToken.isPresent()) {
             emailServiceImpl.sendPasswordResetEmail(user.getFirstName(),
                     user.getEmail(),
-                    user.getPasswordResetToken().getToken());
+                    existingToken.get().getToken());
             return;
         }
 
@@ -95,34 +97,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public void resetUserPassword(ResetPasswordCO resetPasswordCO, String token) {
-
         if (!resetPasswordCO.getPassword().equals(resetPasswordCO.getConfirmPassword())) {
-            throw new PasswordMismatchException("Password mismatch");
+            throw new PasswordMismatchException(messageUtil.getMessage("password.mismatch"));
         }
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidTokenException(messageUtil.getMessage("pass.reset.token.invalid")));
+        User user = passwordResetToken.getUser();
 
-
-        User user = userRepository.findByPasswordResetToken_Token(token);
-
-        if (user == null) {
-            throw new InvalidTokenException("Invalid password reset token");
-        }
-
-        if (user.getPasswordResetToken()
-                .getExpiration()
-                .isBefore(LocalDateTime.now())
+        if (passwordResetToken.getExpiration().isBefore(LocalDateTime.now())
         ) {
+            passwordResetTokenRepository.delete(passwordResetToken);
             generateNewPasswordResetTokenAndSendEmail(user);
-            throw new TokenExpiredException("Password Reset code expired. New reset link has been emailed.");
+            throw new TokenExpiredException(messageUtil.getMessage("pass.reset.token.expired"));
         }
 
-        user.setPasswordResetToken(null);
-        authUtils.resetUserPassword(user, resetPasswordCO.getPassword());
+        passwordResetTokenRepository.delete(passwordResetToken);
+        user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
+        user.setPasswordUpdateDate(LocalDateTime.now());
+        userRepository.save(user);
+        emailServiceImpl.sendPasswordResetSuccessEmail(user);
     }
 
     public String[] refreshJwtTokens(String refreshToken) {
         // Check if refresh token is expired
         if (jwtService.isTokenExpired(refreshToken)) {
-            throw new TokenExpiredException("Refresh Token Expired");
+            throw new TokenExpiredException(messageUtil.getMessage("refresh.token.expired"));
         }
 
         // extract refresh token id and its expiry
@@ -131,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
 
         // check if the refresh token is blacklisted
         if (blacklistTokensRepository.existsByTokenId(refreshTokenJti)) {
-            throw new InvalidTokenException("Invalid Refresh token provided.");
+            throw new InvalidTokenException(messageUtil.getMessage("refresh.token.invalid"));
         }
 
         // generate new access and refresh tokens

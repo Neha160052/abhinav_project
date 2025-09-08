@@ -3,15 +3,13 @@ package com.abhinav.abhinavProject.service.impl;
 import com.abhinav.abhinavProject.co.*;
 import com.abhinav.abhinavProject.entity.user.*;
 import com.abhinav.abhinavProject.exception.*;
-import com.abhinav.abhinavProject.repository.AddressRepository;
-import com.abhinav.abhinavProject.repository.CustomerRepository;
-import com.abhinav.abhinavProject.repository.RoleRepository;
-import com.abhinav.abhinavProject.repository.UserRepository;
+import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.security.UserPrinciple;
 import com.abhinav.abhinavProject.service.CustomerService;
 import com.abhinav.abhinavProject.service.ImageService;
 import com.abhinav.abhinavProject.service.UserService;
 import com.abhinav.abhinavProject.utils.MessageUtil;
+import com.abhinav.abhinavProject.vo.AddressVO;
 import com.abhinav.abhinavProject.vo.CustomerDetailsDTO;
 import com.abhinav.abhinavProject.vo.PageResponseVO;
 import jakarta.validation.ValidationException;
@@ -21,7 +19,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,8 +29,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
@@ -49,44 +48,42 @@ public class CustomerServiceImpl implements CustomerService {
     AddressRepository addressRepository;
     ImageService imageService;
     MessageUtil messageUtil;
+    SellerRepository sellerRepository;
 
-    public void registerCustomer(CustomerRegisterCO registerCO, MultipartFile file) {
-        if (userRepository.existsByEmail(registerCO.getEmail())) {
-            throw new ValidationException("Email already registered");
-        }
-
+    @Override
+    public void registerCustomer(CustomerRegisterCO registerCO) {
         if (!registerCO.getPassword().equals(registerCO.getConfirmPassword())) {
-            throw new ValidationException("Password mismatch.");
+            throw new ValidationException(messageUtil.getMessage("password.mismatch"));
         }
 
-        Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER");
+        if (userRepository.existsByEmail(registerCO.getEmail())) {
+            throw new ValidationException(messageUtil.getMessage("email.alreadyExists"));
+        }
+
+        long contact = Long.parseLong(registerCO.getContact());
+        if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+            throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
+        }
+
+        Role customerRole = roleRepository.findByAuthority("ROLE_CUSTOMER")
+                .orElseThrow(() -> new RoleNotFoundException(messageUtil.getMessage("role.notFound")));
 
         User user = new User();
         Customer customer = new Customer();
 
-        user.setEmail(registerCO.getEmail());
-        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
         user.setFirstName(registerCO.getFirstName());
-        if (registerCO.getMiddleName() != null)
-            user.setMiddleName(registerCO.getMiddleName());
+        user.setMiddleName(registerCO.getMiddleName());
         user.setLastName(registerCO.getLastName());
         user.setRole(customerRole);
+        user.setEmail(registerCO.getEmail());
+        user.setPassword(passwordEncoder.encode(registerCO.getPassword()));
 
         customer.setUser(user);
-        customer.setContact(Long.parseLong(registerCO.getPhoneNumber()));
-        Customer newCustomer = generateNewActivationTokenAndSendEmail(customer);
-
-        if (file != null && !file.isEmpty()) {
-            try {
-                imageService.save(file, newCustomer.getId());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to store profile picture for user " + customer.getId(), e);
-            }
-        }
-
+        customer.setContact(contact);
+        generateNewActivationTokenAndSendEmail(customer);
     }
 
-    private Customer generateNewActivationTokenAndSendEmail(Customer customer) {
+    private void generateNewActivationTokenAndSendEmail(Customer customer) {
         ActivationToken activationToken = new ActivationToken();
 
         activationToken.setToken(UUID.randomUUID().toString());
@@ -100,35 +97,32 @@ public class CustomerServiceImpl implements CustomerService {
         emailServiceImpl.sendActivationEmail(savedCustomer.getUser().getFirstName(),
                 savedCustomer.getUser().getEmail(),
                 savedCustomer.getActivationToken().getToken());
-
-        return savedCustomer;
     }
 
     public void activateCustomerAccount(String token) {
         Customer customer = customerRepository.findByActivationToken_Token(token);
 
         if (customer == null) {
-            throw new InvalidTokenException("Invalid activation token provided");
+            throw new InvalidTokenException(messageUtil.getMessage("activation.token.invalid"));
         }
 
         if (customer.getUser().isActive()) {
-            throw new AccountActiveException("Customer account is already activated");
+            throw new AccountActiveException(messageUtil.getMessage("account.active"));
         }
 
-        if (customer.getActivationToken()
-                .getExpiration()
-                .isBefore(LocalDateTime.now())
+        if (customer.getActivationToken()==null || customer.getActivationToken().getExpiration().isBefore(LocalDateTime.now())
         ) {
             generateNewActivationTokenAndSendEmail(customer);
-            throw new TokenExpiredException("Activation code expired. New activation link has been emailed.");
+            throw new TokenExpiredException(messageUtil.getMessage("activation.token.expired"));
         }
 
         User customerUser = customer.getUser();
         customerUser.setActive(true);
         customer.setUser(customerUser);
         customer.setActivationToken(null);
-
         customerRepository.save(customer);
+
+        emailServiceImpl.sendCustomerActivatedEmail(customer);
     }
 
     public void resendActivationCode(String email) {
@@ -155,6 +149,21 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public void addCustomerProfileImage(MultipartFile image) {
+        UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Customer customer = customerRepository.findByUser_Email(principal.getUsername())
+                .orElseThrow(()->new UserNotFoundException("Could not find customer details"));
+
+        if (image != null && !image.isEmpty()) {
+            try {
+                imageService.saveUserProfileImage(image, customer.getId());
+            } catch (IOException e) {
+                throw new RuntimeException(messageUtil.getMessage("profile.image.error", customer.getId()));
+            }
+        }
+    }
+
+    @Override
     public CustomerDetailsDTO getCustomerDetails() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Customer customer = customerRepository.findByUser_Email(principal.getUsername())
@@ -163,11 +172,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Set<Address> getCustomerAddresses() {
+    public Set<AddressVO> getCustomerAddresses() {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
-                .orElseThrow(()-> new UserNotFoundException("User not Found"));
-        return user.getAddress();
+                .orElseThrow(()-> new UserNotFoundException(messageUtil.getMessage("user.notFound")));
+        return user.getAddress().stream().map(AddressVO::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -177,14 +186,20 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(()->new UserNotFoundException("User not found"));
         User customerUser = customer.getUser();
 
+        if (hasText(customerProfileUpdateCO.getContact())) {
+            long contact = Long.parseLong(customerProfileUpdateCO.getContact());
+            if (customerRepository.existsByContact(contact) || sellerRepository.existsByCompanyContact(contact)) {
+                throw new ValidationException(messageUtil.getMessage("contact.alreadyExists"));
+            }
+            customer.setContact(contact);
+        }
+
         if(nonNull(customerProfileUpdateCO.getFirstName()))
             customerUser.setFirstName(customerProfileUpdateCO.getFirstName());
         if(nonNull(customerProfileUpdateCO.getMiddleName()))
             customerUser.setMiddleName(customerUser.getMiddleName());
         if(nonNull(customerProfileUpdateCO.getLastName()))
             customerUser.setLastName(customerProfileUpdateCO.getLastName());
-        if(nonNull(customerProfileUpdateCO.getContact()))
-            customer.setContact(Long.parseLong(customerProfileUpdateCO.getContact()));
 
         customer.setUser(customerUser);
         customerRepository.save(customer);
@@ -202,7 +217,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void addCustomerAddress(AddressDTO addressDTO) {
+    public void addCustomerAddress(AddressCO addressCO) {
         UserPrinciple principal = (UserPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -210,12 +225,12 @@ public class CustomerServiceImpl implements CustomerService {
         Address address = Address
                 .builder()
                 .user(user)
-                .city(addressDTO.getCity())
-                .state(addressDTO.getState())
-                .country(addressDTO.getCountry())
-                .addressLine(addressDTO.getAddressLine())
-                .zipCode(Integer.parseInt(addressDTO.getZipCode()))
-                .label(addressDTO.getLabel())
+                .city(addressCO.getCity())
+                .state(addressCO.getState())
+                .country(addressCO.getCountry())
+                .addressLine(addressCO.getAddressLine())
+                .zipCode(Integer.parseInt(addressCO.getZipCode()))
+                .label(addressCO.getLabel())
                 .build();
 
         user.getAddress().add(address);
@@ -239,7 +254,7 @@ public class CustomerServiceImpl implements CustomerService {
         try {
             if (imageService.fileExists(dto.getId()).isPresent()) {
                 String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/static/")
+                        .path("/static/user/")
                         .path(String.valueOf(dto.getId()))
                         .path("/profile-image")
                         .toUriString();
