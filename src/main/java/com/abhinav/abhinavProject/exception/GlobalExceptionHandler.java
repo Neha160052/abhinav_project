@@ -103,6 +103,13 @@ public class GlobalExceptionHandler {
         );
     }
 
+//    @ExceptionHandler(FileNotFoundException.class)
+//    public ResponseEntity<ApiResponse> handleMetaFieldNotFound(FileNotFoundException ex) {
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+//                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Field not found", ex.getMessage())
+//        );
+//    }
+
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ApiResponse> handleProductNotFound(ProductNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(

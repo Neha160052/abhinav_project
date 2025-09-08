@@ -41,11 +41,30 @@ public class ImageController {
     }
 
     @GetMapping("/product/{productId}/variation/{variationId}")
-    public ResponseEntity<Resource> getProfileImage(@PathVariable Long productId,
+    public ResponseEntity<Resource> getProductVariationImage(@PathVariable Long productId,
                                                     @PathVariable Long variationId,
                                                     HttpServletRequest request) {
         try {
             Resource resource = imageService.loadVariationPrimaryImage(productId, variationId);
+            String contentType = getContentType(request, resource);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/product/{productId}/variation/{variationId}/images/{imageName}")
+    public ResponseEntity<Resource> getVariationSecondaryImage(@PathVariable Long productId,
+                                                               @PathVariable Long variationId,
+                                                               @PathVariable String imageName,
+                                                               HttpServletRequest request) {
+        try {
+            Resource resource = imageService.loadVariationSecondaryImage(productId, variationId, imageName);
             String contentType = getContentType(request, resource);
 
             return ResponseEntity.ok()

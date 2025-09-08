@@ -240,7 +240,7 @@ public class ProductServiceImpl implements ProductService {
         ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
         vo.setIsActive(productVar.isActive());
         vo.setProductDetails(productVo);
-        return setPrimaryImage(vo);
+        return setPrimaryImage(vo, productVar);
     }
 
     @Override
@@ -373,7 +373,7 @@ public class ProductServiceImpl implements ProductService {
                     ProductVariationDetailsVO vo = new ProductVariationDetailsVO(productVar);
                     vo.setIsActive(productVar.isActive());
                     vo.setProductDetails(productVo);
-                    return setPrimaryImage(vo);
+                    return setPrimaryImage(vo, productVar);
                 })
                 .toList();
 
@@ -513,10 +513,10 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id)));
     }
 
-    private ProductVariationDetailsVO setPrimaryImage(ProductVariationDetailsVO dto) {
+    private ProductVariationDetailsVO setPrimaryImage(ProductVariationDetailsVO dto, ProductVariation pv) {
         String uri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/static/product/")
-                .path(String.valueOf(dto.getProductDetails().getId()))
+                .path(String.valueOf(pv.getProduct().getId()))
                 .path("/variation/")
                 .path(String.valueOf(dto.getId()))
                 .toUriString();
@@ -526,9 +526,30 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductVariationDetailsVO mapToCustomerProductVariationVO(ProductVariation variation) {
         ProductVariationDetailsVO vo = new ProductVariationDetailsVO(variation);
-        setPrimaryImage(vo);
-        // TODO set secondary images
+        setPrimaryImage(vo, variation);
+
+        long productId = variation.getProduct().getId();
+        long variationId = variation.getId();
+
+        List<String> secondaryImageNames = imageService.listSecondaryFiles(productId, variationId);
+
+        List<String> secondaryImageUrls = secondaryImageNames.stream()
+                .map(imageName -> buildSecondaryImageUrl(productId, variationId, imageName))
+                .toList();
+
+        vo.setSecondaryImage(secondaryImageUrls);
         return vo;
+    }
+
+    private String buildSecondaryImageUrl(long productId, long variationId, String imageName) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/static/product/")
+                .path(String.valueOf(productId))
+                .path("/variation/")
+                .path(String.valueOf(variationId))
+                .path("/images/")
+                .path(imageName)
+                .toUriString();
     }
 
     private ProductDetailsVO mapToCustomerProductDetailsVO(Product product) {
@@ -559,7 +580,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductVariationDetailsVO mapToAdminProductVariationDetailsVO(ProductVariation variation) {
         ProductVariationDetailsVO vo = new ProductVariationDetailsVO(variation);
         vo.setIsActive(variation.isActive());
-        setPrimaryImage(vo);
+        setPrimaryImage(vo, variation);
         return vo;
     }
 

@@ -21,4 +21,8 @@ public interface ImageService {
     void saveVariationSecondaryImages(ProductVariation variation, List<MultipartFile> secondaryImages) throws IOException;
 
     Resource loadVariationPrimaryImage(Long productId, Long variationId) throws IOException;
+
+    List<String> listSecondaryFiles(long productId, Long variationId);
+
+    Resource loadVariationSecondaryImage(Long productId, Long variationId, String imageName) throws IOException;
 }

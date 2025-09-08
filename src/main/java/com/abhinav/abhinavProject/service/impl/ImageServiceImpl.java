@@ -5,6 +5,7 @@ import com.abhinav.abhinavProject.service.ImageService;
 import jakarta.validation.ValidationException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ImageServiceImpl implements ImageService {
@@ -137,6 +139,45 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    @Override
+    public Resource loadVariationSecondaryImage(Long productId, Long variationId, String imageName) throws IOException {
+        String expectedPrefix = variationId + "_";
+        if (!imageName.startsWith(expectedPrefix)) {
+            throw new FileNotFoundException("Invalid image name format for variation: " + variationId);
+        }
+
+        Path variationImagesPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(productId))
+                .resolve("variations");
+
+        if (!Files.exists(variationImagesPath) || !Files.isDirectory(variationImagesPath)) {
+            throw new FileNotFoundException("Image directory not found for product: " + productId);
+        }
+
+        Optional<Path> foundFile;
+        try (Stream<Path> files = Files.walk(variationImagesPath, 1)) {
+            foundFile = files
+                    .filter(path -> path.getFileName().toString().startsWith(imageName + "."))
+                    .findFirst();
+        }
+
+        if (foundFile.isPresent()) {
+            Path filePath = foundFile.get();
+            try {
+                Resource resource = new UrlResource(filePath.toUri());
+                if (resource.exists() && resource.isReadable()) {
+                    return resource;
+                } else {
+                    throw new IOException("Could not read file: " + filePath);
+                }
+            } catch (MalformedURLException ex) {
+                throw new IOException("Could not form URL for file: " + filePath, ex);
+            }
+        } else {
+            throw new FileNotFoundException("Secondary image not found: " + imageName);
+        }
+    }
+
     private String saveVariationImage(ProductVariation variation, MultipartFile image, String fileNameWithoutExtension) throws IOException {
         long productId = variation.getProduct().getId();
 
@@ -179,6 +220,39 @@ public class ImageServiceImpl implements ImageService {
             return files.filter(path -> path.getFileName().toString().startsWith(userId + "."))
                     .findFirst();
         }
+    }
+
+    public List<String> listSecondaryFiles(long pId, Long pvId) {
+        Path variationPath = productVariationImageStorageLocation
+                .resolve(String.valueOf(pId))
+                .resolve("variations");
+
+        if (!Files.exists(variationPath) || !Files.isDirectory(variationPath)) {
+            log.info("No folder found at {}", variationPath);
+            return List.of();
+        }
+
+        try (Stream<Path> stream = Files.list(variationPath)) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .map(f -> f.getFileName().toString())
+                    .filter(name -> name.startsWith(pvId + "_"))
+                    .map(this::removeFileExtension)
+                    .toList();
+        } catch (IOException e) {
+            throw new ValidationException("Could not list secondary files for " + pvId, e);
+        }
+    }
+
+    private String removeFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return filename;
+        }
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return filename.substring(0, lastDotIndex);
+        }
+        return filename;
     }
 
     private void deleteExistingFile(Long userId) throws IOException {
