@@ -81,7 +81,7 @@ public class AuthController {
                 .body(new AuthTokenResponseVO(tokens[0], "bearer"));
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<ApiResponse> logout() {
         String accessToken = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
 

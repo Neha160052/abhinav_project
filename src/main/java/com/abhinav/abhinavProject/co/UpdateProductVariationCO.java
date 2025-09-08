@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.co;
 
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class UpdateProductVariationCO {
     @PositiveOrZero
     Integer quantityAvailable;
 
+    @Digits(integer = 9, fraction = 2, message = "{price.digits}")
     @PositiveOrZero
     Double price;
 

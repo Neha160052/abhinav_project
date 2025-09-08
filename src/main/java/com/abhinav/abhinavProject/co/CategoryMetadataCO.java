@@ -15,10 +15,11 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryMetadataCO {
 
-    @NotNull(message = "Category ID cannot be null.")
+    @NotNull(message = "{category.id.required}")
     long categoryId;
 
     @Valid
-    @NotEmpty(message = "Metadata field values list cannot be empty.")
+    @NotEmpty(message = "{metadataFieldValues.required}")
     List<MetadataFieldValuesCO> metadataFieldValues;
+
 }

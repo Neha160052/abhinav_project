@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.co;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -13,9 +14,9 @@ import java.util.Set;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MetadataFieldValuesCO {
-    @NotNull(message = "Metadata field ID cannot be null.")
+    @NotNull(message = "{metadatafield.id.required}")
     long metadataFieldId;
 
-    @NotEmpty(message = "Values cannot be empty.")
-    Set<String> values;
+    @NotEmpty(message = "{metadata.values.required}")
+    Set<@NotBlank(message = "{metadata.values.notBlank}") String> values;
 }

@@ -48,7 +48,7 @@ public class Product {
     @ManyToOne
     Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product")
     List<ProductVariation> variations;
 
     @Embedded

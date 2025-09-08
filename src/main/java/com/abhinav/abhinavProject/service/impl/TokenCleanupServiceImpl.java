@@ -33,6 +33,9 @@ public class TokenCleanupServiceImpl {
         activationTokenRepository.deleteByExpirationBefore(nowLocalDateTime);
         log.info("Cleared expired activation tokens.");
 
+        passwordResetTokenRepository.deleteByExpirationBefore(nowLocalDateTime);
+        log.info("Cleared expired password reset tokens.");
+
         Date nowDate = new Date();
         blacklistTokenRepository.deleteByExpiringAtBefore(nowDate);
         log.info("Cleared expired blacklist tokens.");

@@ -1,5 +1,6 @@
 package com.abhinav.abhinavProject.co;
 
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -21,6 +22,7 @@ public class AddProductVariationCO {
 
     @NotNull(message = "{price.required}")
     @PositiveOrZero
+    @Digits(integer = 9, fraction = 2, message = "{price.digits}")
     Double price;
 
     @NotNull(message = "{metadata.required}")

@@ -9,7 +9,10 @@ import com.abhinav.abhinavProject.entity.category.CategoryMetadataFieldValues;
 import com.abhinav.abhinavProject.entity.product.Product;
 import com.abhinav.abhinavProject.entity.product.ProductVariation;
 import com.abhinav.abhinavProject.entity.user.Seller;
-import com.abhinav.abhinavProject.exception.*;
+import com.abhinav.abhinavProject.exception.CategoryNotFoundException;
+import com.abhinav.abhinavProject.exception.ProductNotFoundException;
+import com.abhinav.abhinavProject.exception.ProductVariationNotFoundException;
+import com.abhinav.abhinavProject.exception.UserNotFoundException;
 import com.abhinav.abhinavProject.filter.ProductVariationFilter;
 import com.abhinav.abhinavProject.repository.*;
 import com.abhinav.abhinavProject.repository.specification.ProductSpecification;
@@ -135,11 +138,14 @@ public class ProductServiceImpl implements ProductService {
         Seller seller = getSellerFromContext();
         ProductVariation variation = getProductVariationEntity(id);
         Product product = variation.getProduct();
+        if(product == null) {
+            throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
+        }
 
         validateOwnership(product, seller);
 
         if (product.isDeleted()) {
-            throw new ProductNotFoundException(messageUtil.getMessage("product.notFound", product.getId()));
+            throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
         }
         if (!product.isActive()) {
             throw new ValidationException(messageUtil.getMessage("product.inactive", product.getId()));
@@ -221,7 +227,9 @@ public class ProductServiceImpl implements ProductService {
         Seller seller = getSellerFromContext();
         ProductVariation productVar = getProductVariationEntity(id);
         Product product = productVar.getProduct();
-
+        if(product == null) {
+            throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
+        }
         validateOwnership(product, seller);
         if (product.isDeleted()) {
             throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound", id));
@@ -356,6 +364,9 @@ public class ProductServiceImpl implements ProductService {
         List<ProductVariationDetailsVO> variationVOs = variationPage.getContent().stream()
                 .map(productVar -> {
                     Product prod = productVar.getProduct();
+                    if(prod == null) {
+                        throw new ProductVariationNotFoundException(messageUtil.getMessage("product.variation.notFound"));
+                    }
                     ProductDetailsVO productVo= new ProductDetailsVO(prod);
                     productVo.setIsActive(productVar.isActive());
 
@@ -451,7 +462,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageResponseVO<List<ProductDetailsVO>> getAllAdminProducts(String query, Long categoryId, Long sellerId, Pageable pageable) {
-        Specification<Product> spec = Specification.unrestricted();
+        Specification<Product> spec = ProductSpecification.isActive();
 
         if (nonNull(categoryId)) {
             List<Long> categoryIds = categoryService.getDescendantLeafCategoryIds(categoryId);
@@ -554,7 +565,7 @@ public class ProductServiceImpl implements ProductService {
 
     private void validateOwnership(Product product, Seller seller) {
         if (!product.getSeller().getId().equals(seller.getId())) {
-            throw new AccessDeniedException(messageUtil.getMessage("access.denied"));
+            throw new ProductNotFoundException(messageUtil.getMessage("product.notFound", product.getId()));
         }
     }
 

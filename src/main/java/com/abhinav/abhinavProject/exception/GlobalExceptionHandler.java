@@ -12,6 +12,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,9 +20,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
+
+import static java.util.Objects.nonNull;
 
 @Slf4j
 @RestControllerAdvice
@@ -39,14 +43,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse> validationExceptionHandler(MethodArgumentNotValidException e) {
-        Map<String, String> errors = new HashMap<>();
-        e.getBindingResult()
-                .getFieldErrors()
-                .forEach(fieldError -> errors.put(fieldError.getField(), fieldError.getDefaultMessage()));
-
+    public ResponseEntity<ApiResponse> validationExceptionHandler(MethodArgumentNotValidException e, Locale locale) {
+        List<String> errors = e.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(error -> {
+                    if (error instanceof FieldError fe) {
+                        return nonNull(fe.getDefaultMessage()) ? fe.getDefaultMessage() : "";
+                    } else {
+                        return nonNull(error.getDefaultMessage()) ? error.getDefaultMessage() : "";
+                    }
+                })
+                .sorted().toList();
+        log.info("ValidationException invoked — errors: {}", errors);
         return ResponseEntity.badRequest().body(
-                new ApiResponse(HttpStatus.BAD_REQUEST.value(), messageUtil.getMessage("validation.failed"), errors)
+                new ApiResponse(HttpStatus.BAD_REQUEST.value(),messageUtil.getMessage("validation.failed"),errors)
         );
     }
 
@@ -171,7 +182,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ApiResponse> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        String message = messageUtil.getMessage("media.unsupported") + ex.getSupportedMediaTypes();
+        String message = messageUtil.getMessage("media.unsupported", ex.getSupportedMediaTypes());
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(
                 new ApiResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(), ex.getMessage(), message)
         );
@@ -187,6 +198,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ApiResponse(HttpStatus.BAD_REQUEST.value(), messageUtil.getMessage("request.param.invalid"), ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse(HttpStatus.NOT_FOUND.value(), "Resource Not Found", ex.getMessage())
         );
     }
 
