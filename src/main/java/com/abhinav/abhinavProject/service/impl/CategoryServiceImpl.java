@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.Objects.nonNull;
+
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -243,8 +245,13 @@ public class CategoryServiceImpl implements CategoryService {
         responseVO.setBrands(brands);
 
         Object[][] prices = productVariationRepository.findPriceRangeByCategoryIds(leafIds);
-        responseVO.setMinPrice((double) prices[0][0]);
-        responseVO.setMaxPrice((double) prices[0][1]);
+        if(nonNull(prices[0][0]) && nonNull(prices[0][1])) {
+            responseVO.setMinPrice((double) prices[0][0]);
+            responseVO.setMaxPrice((double) prices[0][1]);
+        } else {
+            responseVO.setMinPrice(0.0);
+            responseVO.setMaxPrice(0.0);
+        }
 
         return responseVO;
     }

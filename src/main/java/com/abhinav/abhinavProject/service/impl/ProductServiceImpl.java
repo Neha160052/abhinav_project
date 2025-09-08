@@ -462,6 +462,9 @@ public class ProductServiceImpl implements ProductService {
         }
 
         if (nonNull(sellerId)) {
+            if (sellerRepository.findById(sellerId).isEmpty()) {
+                throw new ValidationException(messageUtil.getMessage("seller.notFound", sellerId));
+            }
             spec = spec.and(ProductSpecification.hasSellerId(sellerId));
         }
 
