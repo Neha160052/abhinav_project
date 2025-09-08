@@ -1,12 +1,12 @@
 package com.abhinav.abhinavProject.utils;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import io.jsonwebtoken.Claims;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -29,8 +29,6 @@ public class JwtService {
     public String[] generateAccessAndRefreshToken(String username, GrantedAuthority grantedAuthority) {
         String refreshTokenJti = UUID.randomUUID().toString();
 
-        log.info("REFRESH_JTI: {}", refreshTokenJti);
-
         String refreshToken = Jwts.builder()
                 .id(refreshTokenJti)
                 .claim("role", grantedAuthority.getAuthority())
@@ -39,7 +37,6 @@ public class JwtService {
                 .expiration(Date.from(Instant.now().plusSeconds(24L*60*60)))
                 .signWith(getKey(), Jwts.SIG.HS256)
                 .compact();
-        log.info("REFRESH_TOKEN: {}", refreshToken);
 
         String accessToken = Jwts.builder()
                 .id(UUID.randomUUID().toString())
@@ -50,7 +47,6 @@ public class JwtService {
                 .expiration(Date.from(Instant.now().plusSeconds(15L*60)))
                 .signWith(getKey(), Jwts.SIG.HS256)
                 .compact();
-        log.info("ACCESS_TOKEN: {}", accessToken);
 
         return new String[]{accessToken, refreshToken};
     }

@@ -84,6 +84,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AddressNotFoundException.class)
     public ResponseEntity<ApiResponse> handleAddressNotFound(AddressNotFoundException ex) {
+        log.info("Address not Found. {}", messageUtil.getMessage("address.notfound"));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ApiResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), messageUtil.getMessage("address.notfound"))
         );
@@ -91,6 +92,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ApiResponse> handleCatNotFound(CategoryNotFoundException ex) {
+        log.info("Category not Found. {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ApiResponse(HttpStatus.NOT_FOUND.value(), "Category not found", ex.getMessage())
         );
@@ -98,6 +100,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MetadataFieldNotFoundException.class)
     public ResponseEntity<ApiResponse> handleMetaFieldNotFound(MetadataFieldNotFoundException ex) {
+        log.info("Metadata Field not Found. {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ApiResponse(HttpStatus.NOT_FOUND.value(), "Metadata Field not found", ex.getMessage())
         );
@@ -105,6 +108,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ApiResponse> handleProductNotFound(ProductNotFoundException ex) {
+        log.info("Product not Found. {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ApiResponse(HttpStatus.NOT_FOUND.value(), "Product not found", ex.getMessage())
         );
@@ -140,6 +144,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TokenExpiredException.class)
     public ResponseEntity<ApiResponse> handleExpiredToken(TokenExpiredException ex) {
+        log.info("Expired Token provided. {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ApiResponse(HttpStatus.BAD_REQUEST.value(), "Expired Token", ex.getMessage())
         );
@@ -168,6 +173,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        log.info("Wrong Http Request Method used. {}", messageUtil.getMessage("method.unsupported"));
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
                 new ApiResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), messageUtil.getMessage("method.unsupported"), ex.getMessage())
         );
