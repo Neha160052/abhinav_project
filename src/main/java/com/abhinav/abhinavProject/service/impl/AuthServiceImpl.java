@@ -121,6 +121,7 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepository.delete(passwordResetToken);
         user.setPassword(passwordEncoder.encode(resetPasswordCO.getPassword()));
         user.setPasswordUpdateDate(LocalDateTime.now());
+        user.setLocked(false);
         userRepository.save(user);
 
         log.info("Password successfully reset for user: {}", user.getEmail());
