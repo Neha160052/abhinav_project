@@ -45,6 +45,10 @@ public class UserServiceImpl implements UserService {
                 () -> new UserNotFoundException("Invalid User id provided")
         );
 
+        if(user.getRole().getAuthority().equals("ROLE_ADMIN")) {
+            throw new UserNotFoundException(messageUtil.getMessage("user.notfound"));
+        }
+
         if (user.isActive()) {
             return messageUtil.getMessage("account.active");
         }
@@ -62,6 +66,10 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("Invalid User id provided")
         );
+
+        if(user.getRole().getAuthority().equals("ROLE_ADMIN")) {
+            throw new UserNotFoundException(messageUtil.getMessage("user.notfound"));
+        }
 
         if (!user.isActive()) {
             return messageUtil.getMessage("account.isInactive");
